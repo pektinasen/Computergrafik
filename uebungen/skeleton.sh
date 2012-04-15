@@ -75,6 +75,9 @@ cat <<EOF > $LATEX_FILE
 \usepackage{graphicx} % For includegraphics.
 \usepackage{listings} % For code listings.
 
+\usepackage{amsmath} % For easier usage of matrices and stuff
+\usepackage{amsfonts}
+
 \usepackage[
 pdftitle={Computergrafik: Übung $NUMBER},
 pdfsubject={Abgabe zu Übung $NUMBER},
@@ -82,7 +85,7 @@ pdfauthor={Sascha Gennrich (4301150), Malte Rohde (4287463)}
 ]{hyperref}
 
 \title{Computergrafik: Übung $NUMBER}
-\author{Sascha Gennrich (4301150), Malte Rohde (4287463)}
+\author{Sascha Gennrich (4301150) \and Malte Rohde (4287463)}
 \date{\today{}}
 
 \begin{document}
