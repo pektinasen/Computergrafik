@@ -1,0 +1,88 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}  
+\usepackage[T1]{fontenc}         
+\usepackage[ngerman]{babel}
+
+\usepackage{graphicx} % For includegraphics.
+\usepackage{listings} % For code listings.
+
+\usepackage{amsmath} % For easier usage of matrices and stuff
+\usepackage{amsfonts}
+
+\usepackage[
+pdftitle={Computergrafik: Übung 01},
+pdfsubject={Abgabe zu Übung 01},
+pdfauthor={Sascha Gennrich (4301150), Malte Rohde (4287463)}
+]{hyperref}
+
+\title{Computergrafik: Übung 01}
+\author{Sascha Gennrich (4301150) \and Malte Rohde (4287463)}
+\date{\today{}}
+
+\begin{document}
+\maketitle
+
+\section*{Aufgabe 1}
+\subsection*{(a)}
+Die projektive Transformation besteht aus einer Rotation und einer Translation. Die Translation dient der Verschiebung des Ursprungs $\left(\begin{matrix} 0 \\ 0 \end{matrix}\right)$ auf den Punkt $\left(\begin{matrix} 2 \\ 1 \end{matrix}\right)$. Die Rotation muss folglich den Punkt $\left(\begin{matrix} 3 \\ 4 \end{matrix}\right)$ auf den Punkt $\left(\begin{matrix} 2 \\ 6 \end{matrix}\right) - \left(\begin{matrix} 2 \\ 1 \end{matrix}\right) = \left(\begin{matrix} 0 \\ 5 \end{matrix}\right)$ abbilden. Wir bestimmen den Rotationswinkel $\alpha$ als den zwischen dem Vektor $\left(\begin{matrix} 3 \\ 4 \end{matrix}\right)$ und der y-Achse eingeschlossenen Winkel.
+
+\begin{align*}
+\tan\alpha& = \frac{3}{4} \\
+\alpha& = \arctan{\frac{3}{4}} \\
+& = 36,87^\circ
+\end{align*}
+
+Die dritte Spalte der Rotationsmatrix entspricht der Translationsbewegung. Die oberen linken 4 Komponenten ergeben sich aus der kartesischen Rotationsmatrix. Es ergibt sich also: 
+
+\begin{align*}
+\left(\begin{matrix} m_11 & m_12 & m_13 \\ m_21 & m_22 & m_23 \\ 0 & 0 & 1 \end{matrix}\right) &
+= \left(\begin{matrix} \cos\alpha & \text{-}\sin\alpha & 2 \\ \sin\alpha & \cos\alpha & 1 \\ 0 & 0 & 1 \end{matrix}\right) \\
+& = \left(\begin{matrix} \frac{4}{5} & \text{-}\frac{3}{5} & 2 \\ \frac{3}{5} & \frac{4}{5} & 1 \\ 0 & 0 & 1 \end{matrix}\right)
+\end{align*}
+
+\subsection*{(b)}
+\begin{align*}
+\vec{z} & = R\left(\vec{z}\right) \\
+\left(\begin{matrix} z_1 \\ z_2 \\ 1 \end{matrix}\right) & = 
+\left(\begin{matrix} \frac{4}{5} & \text{-}\frac{3}{5} & 2 \\ \frac{3}{5} & \frac{4}{5} & 1 \\ 0 & 0 & 1 \end{matrix}\right)
+\cdot
+\left(\begin{matrix} z_1 \\ z_2 \\ 1 \end{matrix}\right)
+\end{align*}
+Matrix-Vektor-Multiplikation und Lösung des linearen Gleichungssystems:
+\begin{align*}
+z_1 & = \frac{4}{5} z_1 - \frac{3}{5} z_2 + 2 \\
+z_2 & = \frac{3}{5} z_1 + \frac{4}{5} z_2 + 1 \\
+\\
+\frac{1}{5} z_1 & =  \text{-}\frac{3}{5} z_2 + 2 \\
+\frac{1}{5} z_2 & = \frac{3}{5} z_1 + 1 \\
+\\
+z_1 & =  \text{-} 3 z_2 + 10 \\
+z_2 & = 3 z_1 + 5 \\
+\\
+z_1 & = \text{-}9 z_1 - 15 + 10 \\
+    & = \text{-}\frac{1}{2} \\
+\\
+z_2 & = \text{-}\frac{3}{2} + 5 \\
+    & = \frac{7}{2}
+\end{align*}
+
+\subsection*{(c)}
+Wir berechnen den Drehwinkel über den zwischen den Richtungsvektoren vom Fixpunkt zum Ursprung und vom Fixpunkt zum Punkt $\left(\begin{matrix} 2 \\ 1 \end{matrix}\right)$ eingeschlossenen Winkel. Die Drehrichtung ist in dieser Betrachtungsweise gegen den Uhrzeigersinn.
+\begin{align*}
+\cos\phi & = \frac{\vec{v_1}\cdot\vec{v_2}}{\left|\vec{v_1}\right|\cdot\left|\vec{v_1}\right|} \\
+\text{mit} \\
+\vec{v_1} & = \left(\begin{matrix} 0 \\ 0 \end{matrix}\right)
+- \left(\begin{matrix} \text{-}\frac{1}{2} \\ \frac{7}{2} \end{matrix}\right) 
+= \left(\begin{matrix} \frac{1}{2} \\ \text{-}\frac{7}{2} \end{matrix}\right) \\
+\vec{v_2} & = \left(\begin{matrix} 2 \\ 1 \end{matrix}\right)
+- \left(\begin{matrix} \text{-}\frac{1}{2} \\ \text{-}\frac{5}{2} \end{matrix}\right) 
+= \left(\begin{matrix} \frac{5}{2} \\ \text{-}\frac{5}{2} \end{matrix}\right) \\
+\\
+\cos\phi & = \frac{\frac{1}{2}\cdot\frac{5}{2} + \text{-}\frac{7}{2} \cdot \text{-}\frac{5}{2}}
+{\sqrt{\frac{1}{2}^2 + \left(\text{-}\frac{7}{2}\right)^2} \cdot \sqrt{\frac{5}{2}^2 + \left(\text{-}\frac{5}{2}\right)^2}} \\
+ & = \frac{\frac{40}{4}}{\frac{50}{4}} \\
+ & = \frac{4}{5} \\
+\Longrightarrow \phi & = 36,87^\circ
+\end{align*}
+
+\end{document}
