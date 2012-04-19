@@ -88,19 +88,23 @@ Wir berechnen den Drehwinkel über den zwischen den Richtungsvektoren vom Fixpun
 \section*{Aufgabe 7: Rotation um eine beliebige Achse}
 Wir folgen der in der Aufgabenstellung gegebenen Lösungsidee. Gesucht sind also die Matrizen $A$ (Drehung von $u$ in die $yz$-Ebene), $B$ (Drehung auf die $z$-Achse) und $C$ (Rotation um die $z$-Achse) sowie die Inversen $A^{\text{-}1}$ und $B^{\text{-}1}$.
 \subsubsection*{Drehung von $u$ in die $yz$-Ebene}
-Mit der Drehung in die $yz$-Ebene wird die $x$-Komponente des Vektors 0, gesucht ist also die Matrix $A$ mit:
+Wir drehen Vektor $u=\begin{pmatrix} u_x \\ u_y \\ u_z \end{pmatrix}$ um die $z$-Achse in die $yz$-Ebene. Der Drehwinkel $\alpha$ entspricht dem zwischen dem Vektor $u$ und der $yz$-Ebene eingeschlossenen Winkel. Wir errechnen diesen über Dreiecksgeometrie:
 \begin{align*}
-\left(\begin{matrix} 0 \\ \text{-}2 \\ 3\end{matrix}\right) & =
-A\cdot \begin{pmatrix} 5 \\ \text{-}2 \\ 3 \end{pmatrix} \\
-\left(\begin{matrix} 0 \\ \text{-}2 \\ 3\end{matrix}\right) & =
-\begin{pmatrix} a_11 & a_12 & a_13 \\ a_21 & a_22 & a_23 \\ a_31 & a_32 & a_33 \end{pmatrix}
-\cdot 
-\begin{pmatrix} 5 \\ \text{-}2 \\ 3 \end{pmatrix}
+\sin\alpha & = \frac{u_x}{\left|u\right|_{xy}} \\
+\cos\alpha & = \frac{u_y}{\left|u\right|_{xy}}
 \end{align*}
-Aufstellen des Gleichungssystems:
+$\left|u\right|_{xy}$ steht hierbei für die Länge des auf die $xy$-Ebene projizierten Vektors, bzw. die Länge von $u$ ohne Berücksichtigung der $z$-Komponente. Die Rotationsmatrix ist entsprechend:
 \begin{align*}
-0 & = 5 a_11 - 2 a_12 + 3 a_13 \\
-\text{-}2 & = 5 a_21 - 2 a_22 + 3 a_13 \\
-0 & = 5 a_11 - 2 a_12 + 3 a_13 \\
+A & = \begin{pmatrix} \cos\alpha & \text{-}\sin\alpha & 0 \\ \sin\alpha & \cos\alpha & 0 \\ 0 & 0 & 1 \end{pmatrix}
+\\
+& = \begin{pmatrix} \frac{u_y}{\left|u\right|_{xy}} & \text{-} \frac{u_x}{\left|u\right|_{xy}} & 0 \\ \frac{u_x}{\left|u\right|_{xy}} & \frac{u_y}{\left|u\right|_{xy}} & 0 \\ 0 & 0 & 1\end{pmatrix}
 \end{align*}
+Mit Hilfe der Rotationsmatrix wird der Vektor $u$ auf den Vektor $u'$ abgebildet:
+\begin{align*}
+\vec{u'} & = A\vec{u} \\
+& = \begin{pmatrix} 0 \\ \frac{u_x^2 + u_y^2}{\left|u\right|_{xy}} \\ u_z\end{pmatrix}
+\end{align*}
+
+\subsubsection*{Drehung um die $x$-Achse auf die $z$-Achse}
+
 \end{document}
