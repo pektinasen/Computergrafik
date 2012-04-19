@@ -8,6 +8,7 @@
 
 \usepackage{amsmath} % For easier usage of matrices and stuff
 \usepackage{amsfonts}
+\usepackage{gauss}
 
 \usepackage[
 pdftitle={Computergrafik: Übung 01},
@@ -85,9 +86,11 @@ Wir berechnen den Drehwinkel über den zwischen den Richtungsvektoren vom Fixpun
 \Longrightarrow \phi & = 36,87^\circ
 \end{align*}
 
+
 \section*{Aufgabe 7: Rotation um eine beliebige Achse}
 Wir folgen der in der Aufgabenstellung gegebenen Lösungsidee. Gesucht sind also die Matrizen $A$ (Drehung von $u$ in die $yz$-Ebene), $B$ (Drehung auf die $z$-Achse) und $C$ (Rotation um die $z$-Achse) sowie die Inversen $A^{\text{-}1}$ und $B^{\text{-}1}$.
-\subsubsection*{Drehung von $u$ in die $yz$-Ebene}
+
+\subsection*{Drehung von $u$ in die $yz$-Ebene}
 Wir drehen Vektor $u=\begin{pmatrix} u_x \\ u_y \\ u_z \end{pmatrix}$ um die $z$-Achse in die $yz$-Ebene. Der Drehwinkel $\alpha$ entspricht dem zwischen dem Vektor $u$ und der $yz$-Ebene eingeschlossenen Winkel. Wir errechnen diesen über Dreiecksgeometrie:
 \begin{align*}
 \sin\alpha & = \frac{u_x}{\left|u\right|_{xy}} \\
@@ -97,14 +100,78 @@ $\left|u\right|_{xy}$ steht hierbei für die Länge des auf die $xy$-Ebene proji
 \begin{align*}
 A & = \begin{pmatrix} \cos\alpha & \text{-}\sin\alpha & 0 \\ \sin\alpha & \cos\alpha & 0 \\ 0 & 0 & 1 \end{pmatrix}
 \\
-& = \begin{pmatrix} \frac{u_y}{\left|u\right|_{xy}} & \text{-} \frac{u_x}{\left|u\right|_{xy}} & 0 \\ \frac{u_x}{\left|u\right|_{xy}} & \frac{u_y}{\left|u\right|_{xy}} & 0 \\ 0 & 0 & 1\end{pmatrix}
+& = \begin{pmatrix} 
+\frac{u_y}{\left|u\right|_{xy}} & \text{-} \frac{u_x}{\left|u\right|_{xy}} & 0 \\ 
+\frac{u_x}{\left|u\right|_{xy}} & \frac{u_y}{\left|u\right|_{xy}} & 0 \\ 
+0 & 0 & 1
+\end{pmatrix}
 \end{align*}
-Mit Hilfe der Rotationsmatrix wird der Vektor $u$ auf den Vektor $u'$ abgebildet:
+Mit Hilfe der Rotationsmatrix wird der Vektor $u$ auf den Vektor $v$ abgebildet:
 \begin{align*}
-\vec{u'} & = A\vec{u} \\
+\vec{v} & = A\vec{u} \\
 & = \begin{pmatrix} 0 \\ \frac{u_x^2 + u_y^2}{\left|u\right|_{xy}} \\ u_z\end{pmatrix}
 \end{align*}
 
-\subsubsection*{Drehung um die $x$-Achse auf die $z$-Achse}
+\subsection*{Berechnung der Inversen $A^{\text{-}1}$ für später}
+Wie berechnen die Inverse $A^{\text{-}1}$ mit Hilfe des Gauß-Jordan-Algorithmus.
+\begin{align*}
+\begin{gmatrix}[p]
+\frac{u_y}{\left|u\right|_{xy}} & \text{-} \frac{u_x}{\left|u\right|_{xy}} & 0 \\ 
+\frac{u_x}{\left|u\right|_{xy}} & \frac{u_y}{\left|u\right|_{xy}} & 0 \\ 
+0 & 0 & 1
+\rowops
+\mult{0}{\cdot \text{-}\frac{u_x}{u_y}}
+\add{0}{1}
+\mult{1}{\cdot \text{-}\frac{u_x^2}{u_x^2 + u_y^2}}
+\add{1}{0}
+\mult{0}{\cdot \text{-}\frac{\left|u\right|_{xy}}{u_x}}
+\mult{1}{\cdot \text{-}\frac{\left|u\right|_{xy} \cdot u_y}{u_x^2}}
+\end{gmatrix}
+\\
+\Longrightarrow A^{\text{-}1} = 
+\begin{pmatrix}
+\frac{u_y \cdot \left|u\right|_{xy}}{u_x^2 + u_y^2} & \frac{u_x \cdot \left|u\right|_{xy}}{u_x^2 + u_y^2} & 0 \\
+\text{-}\frac{u_x \cdot \left|u\right|_{xy}}{u_x^2 + u_y^2} & \frac{u_y \cdot \left|u\right|_{xy}}{u_x^2 + u_y^2} & 0 \\
+0 & 0 & 1
+\end{pmatrix}
+\end{align*}
 
+
+\subsection*{Drehung um die $x$-Achse auf die $z$-Achse}
+Um Vektor $v$ auf die $z$-Achse abzubilden, rotieren wir (in der $yz$-Ebene) um die $x$-Achse. Den Drehwinkel $\beta$ erhalten wir wie zuvor über Dreiecksgeometrie:
+\begin{align*}
+\sin\beta & = \frac{v_y}{\left|v\right|} \\
+\cos\beta & = \frac{v_z}{\left|v\right|}
+\end{align*}
+Rotationsmatrix B:
+\begin{align*}
+B & = \begin{pmatrix} 1 & 0 & 0 \\ 0 & \cos\beta & \text{-}\sin\beta\\ 0 & \sin\beta & \cos\beta \end{pmatrix}
+\\
+& = \begin{pmatrix} 1 & 0 & 0 \\ 0 & \frac{v_z}{\left|v\right|} & \text{-}\frac{v_y}{\left|v\right|} \\ 0 & \frac{v_y}{\left|v\right|} & \frac{v_z}{\left|v\right|} \end{pmatrix}
+\end{align*}
+
+\subsection*{Berechnung der Inversen $B^{\text{-}1}$ für später}
+Analog zu oben:
+\begin{align*}
+B^{\text{-}1} = 
+\begin{pmatrix}
+0 & 0 & 1 \\
+0 & \frac{v_z \cdot \left|v\right|}{v_y^2 + v_z^2} & \frac{v_y \cdot \left|v\right|}{v_y^2 + v_z^2}\\
+0 & \text{-}\frac{v_y \cdot \left|v\right|}{v_y^2 + v_z^2} & \frac{v_z \cdot \left|v\right|}{v_y^2 + v_z^2}
+\end{pmatrix}
+\end{align*}
+
+\subsection*{Drehung um die $z$-Achse}
+Wir rotieren um die $z$-Achse mit $\phi = 30^\circ$. Rotationsmatrix C:
+\begin{align*}
+A & = \begin{pmatrix} \cos\phi & \text{-}\sin\phi & 0 \\ \sin\phi & \cos\phi & 0 \\ 0 & 0 & 1 \end{pmatrix}
+\\
+& = \begin{pmatrix} \frac{\sqrt{3}}{2} & \text{-}\frac{1}{2} & 0 \\ \frac{1}{2} & \frac{\sqrt{3}}{2} & 0 \\ 0 & 0 & 1\end{pmatrix}
+\end{align*}
+
+\subsection*{Affine Transformation}
+Die gesamte Transformation ergibt sich als:
+\begin{equation*}
+T = ABCA^{\text{-}1}B^{\text{-}1}
+\end{equation*}
 \end{document}
