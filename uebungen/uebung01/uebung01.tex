@@ -35,7 +35,7 @@ Die projektive Transformation besteht aus einer Rotation und einer Translation. 
 Die dritte Spalte der Rotationsmatrix entspricht der Translationsbewegung. Die oberen linken 4 Komponenten ergeben sich aus der kartesischen Rotationsmatrix. Es ergibt sich also: 
 
 \begin{align*}
-\left(\begin{matrix} m_11 & m_12 & m_13 \\ m_21 & m_22 & m_23 \\ 0 & 0 & 1 \end{matrix}\right) &
+\left(\begin{matrix} m_{11} & m_{12} & m_{13} \\ m_{21} & m_{22} & m_{23} \\ 0 & 0 & 1 \end{matrix}\right) &
 = \left(\begin{matrix} \cos\alpha & \text{-}\sin\alpha & 2 \\ \sin\alpha & \cos\alpha & 1 \\ 0 & 0 & 1 \end{matrix}\right) \\
 & = \left(\begin{matrix} \frac{4}{5} & \text{-}\frac{3}{5} & 2 \\ \frac{3}{5} & \frac{4}{5} & 1 \\ 0 & 0 & 1 \end{matrix}\right)
 \end{align*}
@@ -85,4 +85,22 @@ Wir berechnen den Drehwinkel über den zwischen den Richtungsvektoren vom Fixpun
 \Longrightarrow \phi & = 36,87^\circ
 \end{align*}
 
+\section*{Aufgabe 7: Rotation um eine beliebige Achse}
+Wir folgen der in der Aufgabenstellung gegebenen Lösungsidee. Gesucht sind also die Matrizen $A$ (Drehung von $u$ in die $yz$-Ebene), $B$ (Drehung auf die $z$-Achse) und $C$ (Rotation um die $z$-Achse) sowie die Inversen $A^{\text{-}1}$ und $B^{\text{-}1}$.
+\subsubsection*{Drehung von $u$ in die $yz$-Ebene}
+Mit der Drehung in die $yz$-Ebene wird die $x$-Komponente des Vektors 0, gesucht ist also die Matrix $A$ mit:
+\begin{align*}
+\left(\begin{matrix} 0 \\ \text{-}2 \\ 3\end{matrix}\right) & =
+A\cdot \begin{pmatrix} 5 \\ \text{-}2 \\ 3 \end{pmatrix} \\
+\left(\begin{matrix} 0 \\ \text{-}2 \\ 3\end{matrix}\right) & =
+\begin{pmatrix} a_11 & a_12 & a_13 \\ a_21 & a_22 & a_23 \\ a_31 & a_32 & a_33 \end{pmatrix}
+\cdot 
+\begin{pmatrix} 5 \\ \text{-}2 \\ 3 \end{pmatrix}
+\end{align*}
+Aufstellen des Gleichungssystems:
+\begin{align*}
+0 & = 5 a_11 - 2 a_12 + 3 a_13 \\
+\text{-}2 & = 5 a_21 - 2 a_22 + 3 a_13 \\
+0 & = 5 a_11 - 2 a_12 + 3 a_13 \\
+\end{align*}
 \end{document}
