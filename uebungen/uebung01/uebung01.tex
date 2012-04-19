@@ -87,6 +87,7 @@ Wir berechnen den Drehwinkel über den zwischen den Richtungsvektoren vom Fixpun
 \end{align*}
 
 
+
 \section*{Aufgabe 7: Rotation um eine beliebige Achse}
 Wir folgen der in der Aufgabenstellung gegebenen Lösungsidee. Gesucht sind also die Matrizen $A$ (Drehung von $u$ in die $yz$-Ebene), $B$ (Drehung auf die $z$-Achse) und $C$ (Rotation um die $z$-Achse) sowie die Inversen $A^{\text{-}1}$ und $B^{\text{-}1}$.
 
@@ -110,6 +111,13 @@ Mit Hilfe der Rotationsmatrix wird der Vektor $u$ auf den Vektor $v$ abgebildet:
 \begin{align*}
 \vec{v} & = A\vec{u} \\
 & = \begin{pmatrix} 0 \\ \frac{u_x^2 + u_y^2}{\left|u\right|_{xy}} \\ u_z\end{pmatrix}
+\end{align*}
+Wir beobachten, dass die Länge dieses Vektors (ohne Berücksichtigung seiner x-Komponenten) gleich der Gesamtlänge des Ursprungsvektors ist.
+\begin{align*}
+\left|v\right| & = \sqrt{\left(\frac{u_x^2 + u_y^2}{\left|u\right|_{xy}}\right)^2 + u_z^2} \\
+& = \sqrt{\left(\frac{u_x^2 + u_y^2}{\sqrt{u_x^2 + u_y^2}}\right)^2 + u_z^2} \\
+& = \sqrt{u_x^2 + u_y^2 + u_z^2} \\
+& = \left|u\right|
 \end{align*}
 
 \subsection*{Berechnung der Inversen $A^{\text{-}1}$ für später}
@@ -172,6 +180,90 @@ A & = \begin{pmatrix} \cos\phi & \text{-}\sin\phi & 0 \\ \sin\phi & \cos\phi & 0
 \subsection*{Affine Transformation}
 Die gesamte Transformation ergibt sich als:
 \begin{equation*}
-T = ABCA^{\text{-}1}B^{\text{-}1}
+T = ABCB^{\text{-}1}A^{\text{-}1}
 \end{equation*}
+Wir lösen schrittweise.
+\begin{align*}
+AB & = 
+\begin{pmatrix} 
+\frac{u_y}{\left|u\right|_{xy}} & \text{-} \frac{u_x}{\left|u\right|_{xy}} & 0 \\ 
+\frac{u_x}{\left|u\right|_{xy}} & \frac{u_y}{\left|u\right|_{xy}} & 0 \\ 
+0 & 0 & 1
+\end{pmatrix}
+\cdot
+\begin{pmatrix} 
+1 & 0 & 0 \\ 
+0 & \frac{v_z}{\left|v\right|} & \text{-} \frac{v_y}{\left|v\right|} \\ 
+0 & \frac{v_y}{\left|v\right|} & \frac{v_z}{\left|v\right|} 
+\end{pmatrix}
+\\ & =
+\begin{pmatrix} 
+\frac{u_y}{\left|u\right|_{xy}} & \text{-} \frac{u_x v_z}{\left|u\right|_{xy}\left|v\right|} & \frac{u_x v_y}{\left|u\right|_{xy}\left|v\right|} \\
+\frac{u_x}{\left|u\right|_{xy}} & \frac{u_y v_z}{\left|u\right|_{xy}\left|v\right|} & \text{-} \frac{u_y v_y}{\left|u\right|_{xy}\left|v\right|} \\ 
+0 & \frac{v_y}{\left|v\right|} & \frac{v_z}{\left|v\right|} 
+\end{pmatrix}
+\end{align*}
+
+\begin{align*}
+ABC & = 
+\begin{pmatrix} 
+\frac{u_y}{\left|u\right|_{xy}} & \text{-} \frac{u_x v_z}{\left|u\right|_{xy}\left|v\right|} & \frac{u_x v_y}{\left|u\right|_{xy}\left|v\right|} \\
+\frac{u_x}{\left|u\right|_{xy}} & \frac{u_y v_z}{\left|u\right|_{xy}\left|v\right|} & \text{-} \frac{u_y v_y}{\left|u\right|_{xy}\left|v\right|} \\ 
+0 & \frac{v_y}{\left|v\right|} & \frac{v_z}{\left|v\right|} 
+\end{pmatrix}
+\cdot
+\begin{pmatrix} \frac{\sqrt{3}}{2} & \text{-}\frac{1}{2} & 0 \\ \frac{1}{2} & \frac{\sqrt{3}}{2} & 0 \\ 0 & 0 & 1\end{pmatrix}
+\\ & =
+\begin{pmatrix} 
+\frac{\sqrt{3} u_y \left|v\right| - u_x v_z}{2 \left|u\right|_{xy}\left|v\right|} & 
+\text{-}\frac{ u_y \left|v\right| + \sqrt{3} u_x v_z}{2 \left|u\right|_{xy}\left|v\right|} &  
+\frac{u_x v_y}{\left|u\right|_{xy}\left|v\right|}
+\\
+\frac{\sqrt{3} u_x \left|v\right| + u_y v_z}{2 \left|u\right|_{xy}\left|v\right|} &
+\frac{\text{-} u_x \left|v\right| + \sqrt{3} u_y v_z}{2 \left|u\right|_{xy}\left|v\right|} & 
+\text{-} \frac{u_y v_y}{\left|u\right|_{xy}\left|v\right|}
+\\
+\frac{v_y}{2 \left|v\right|} &
+\frac{\sqrt{3} v_y}{2 \left|v\right|} &
+\frac{v_z}{\left|v\right|} 
+\end{pmatrix}
+\end{align*}
+
+
+\begin{align*}
+ABCB^{\text{-}1} & =
+\begin{pmatrix} 
+\frac{\sqrt{3} u_y \left|v\right| - u_x v_z}{2 \left|u\right|_{xy}\left|v\right|} & 
+\text{-}\frac{ u_y \left|v\right| + \sqrt{3} u_x v_z}{2 \left|u\right|_{xy}\left|v\right|} &  
+\frac{u_x v_y}{\left|u\right|_{xy}\left|v\right|}
+\\
+\frac{\sqrt{3} u_x \left|v\right| + u_y v_z}{2 \left|u\right|_{xy}\left|v\right|} &
+\frac{\text{-} u_x \left|v\right| + \sqrt{3} u_y v_z}{2 \left|u\right|_{xy}\left|v\right|} & 
+\text{-} \frac{u_y v_y}{\left|u\right|_{xy}\left|v\right|}
+\\
+\frac{v_y}{2 \left|v\right|} &
+\frac{\sqrt{3} v_y}{2 \left|v\right|} &
+\frac{v_z}{\left|v\right|} 
+\end{pmatrix}
+\cdot
+\begin{pmatrix}
+0 & 0 & 1 \\
+0 & \frac{v_z \cdot \left|v\right|}{v_y^2 + v_z^2} & \frac{v_y \cdot \left|v\right|}{v_y^2 + v_z^2}\\
+0 & \text{-}\frac{v_y \cdot \left|v\right|}{v_y^2 + v_z^2} & \frac{v_z \cdot \left|v\right|}{v_y^2 + v_z^2}
+\end{pmatrix}
+\\ & =
+\begin{pmatrix}
+&
+&
+\\
+&
+&
+\\
+&
+&
+\end{pmatrix}
+\end{align*}
+
+
+
 \end{document}
