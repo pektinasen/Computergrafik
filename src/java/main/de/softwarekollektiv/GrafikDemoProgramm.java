@@ -14,9 +14,10 @@ import javax.swing.JPanel;
 import sun.net.www.content.text.plain;
 
 class TestPanel extends JPanel implements MouseListener {
+	private static final long serialVersionUID = 1L;
 
 	Point from = new Point(10, 10);
-	Point to = null;
+	Point to = from;
 
 	List<Point> points = new LinkedList<Point>();
 	
@@ -56,7 +57,7 @@ class TestPanel extends JPanel implements MouseListener {
 		if (to == null) {
 			to = new Point(e.getX(), e.getY());
 			points.add(to);
-			bresenham(from, to);
+			bresenham_compact(from, to);
 		} else {
 			from = new Point(e.getX(), e.getY());
 			points.clear();
@@ -66,9 +67,33 @@ class TestPanel extends JPanel implements MouseListener {
 		}
 		
 		setPixel(e.getX(), e.getY());
-	
 	}
 
+	public void bresenham_compact(Point from, Point to) {
+		int dx = Math.abs(to.x - from.x);
+		int sx = from.x < to.x ? 1 : -1;
+		int dy = -Math.abs(to.y - from.y);
+		int sy = from.y < to.y ? 1 : -1;
+		int err = dx + dy;
+		int e2;
+		
+		int x = from.x;
+		int y = from.y;
+		for(;;) {
+			setPixel(x, y);
+			if(to.x == x && to.y == y) break;
+			e2 = 2 * err;
+			if(e2 > dy) {
+				err += dy; 
+				x += sx;
+			}
+			if(e2 < dx) {
+				err += dx;
+				y += sy;
+			}
+		}
+	}
+	
 	public void bresenham(Point from, Point to) {
 		// REM Bresenham-Algorithmus für eine Linie im ersten Oktanten in
 		// Pseudo-Basic
@@ -115,9 +140,8 @@ class TestPanel extends JPanel implements MouseListener {
 	}
 
 	private void setPixel(int x, int y) {
-		points.add( new Point(x, y));
+		points.add(new Point(x, y));
 		this.repaint();
-
 	}
 
 }
