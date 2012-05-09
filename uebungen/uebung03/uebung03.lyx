@@ -112,6 +112,80 @@ Aufgabe 16)
 \end_layout
 
 \begin_layout Standard
+Zunächst bauen wir uns eine Drehmatrix zur Rotation um die z-Achse:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+A & = & \left(\begin{array}{ccc}
+\cos\alpha & \text{-}\sin\alpha & 0\\
+\sin\alpha & \cos\alpha & 0\\
+0 & 0 & 1
+\end{array}\right)\\
+ & = & \left(\begin{array}{ccc}
+\frac{1}{2} & \text{-}\frac{\sqrt{3}}{2} & 0\\
+\frac{\sqrt{3}}{2} & \frac{1}{2} & 0\\
+0 & 0 & 1
+\end{array}\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Anschließend basteln wir uns eine projektive Transformation, um das 
+\begin_inset Quotes eld
+\end_inset
+
+Objekt
+\begin_inset Quotes erd
+\end_inset
+
+ (den Würfel) in unsere Welt zu übertragen.
+ Wir ergänzen die Translation zum Punkt 
+\begin_inset Formula $\left(\begin{array}{c}
+7\\
+3\\
+4
+\end{array}\right)$
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+B=\left(\begin{array}{cccc}
+\frac{1}{2} & \text{-}\frac{\sqrt{3}}{2} & 0 & 7\\
+\frac{\sqrt{3}}{2} & \frac{1}{2} & 0 & 3\\
+0 & 0 & 1 & 4\\
+0 & 0 & 0 & 1
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So, weiter in der rendering pipeline.
+ Die Kamera steht noch da, wo wir sie in Aufgabe 12 gelassen haben.
+ Wir brauchen also zur Umrechnung in Augenkoordinaten die entsprechende
+ Matrix (aus der Mail übernommen!):
+\begin_inset Formula 
+\[
+C=\left(\begin{array}{cccc}
+\text{-}\frac{4}{5} & \text{-}\frac{3}{5} & 0 & \frac{37}{5}\\
+\text{-}\frac{3}{\sqrt{650}} & \frac{4}{\sqrt{650}} & \frac{25}{\sqrt{650}} & \text{-}\frac{91}{\sqrt{650}}\\
+\text{-}\frac{3}{\sqrt{26}} & \frac{4}{\sqrt{26}} & \text{-}\frac{1}{\sqrt{26}} & \text{-}\frac{13}{\sqrt{26}}\\
+0 & 0 & 0 & 1
+\end{array}\right)
+\]
+
+\end_inset
+
 
 \end_layout
 
