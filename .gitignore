@@ -1,0 +1,4 @@
+CG*.pdf
+*.lyx~
+bin
+lib/jogamp-all-platforms
