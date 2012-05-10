@@ -246,7 +246,16 @@ C\cdot B\cdot A & = & C\text{\cdot}\begin{pmatrix}\text{-}\frac{4+3\sqrt{3}}{10}
 \end_layout
 
 \begin_layout Standard
-Na, ob das wohl stimmt?
+Na, ob das wohl stimmt? Als nächstes müssten wir die Eckpunkte des Würfels
+ (
+\begin_inset Formula $(\text{-}1,\text{-}1,\text{-}1)$
+\end_inset
+
+ usw.) mittels der Matrix abbilden und schauen, ob sie überhaupt im sichtbaren
+ Bereich liegen.
+ Anschließend würden die Punkte, die innerhalb des Einheitswürfels (in normalisi
+erten Gerätekoordinaten) liegen, gerastert (Multiplikation mit der Breite/Höhe
+ und Integerdivision) und gezeichnet.
 \end_layout
 
 \end_body
