@@ -1,4 +1,4 @@
-package de.softwarekollektiv;
+package de.softwarekollektiv.cg.uebungen.uebung3;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -10,8 +10,6 @@ import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-
-import sun.net.www.content.text.plain;
 
 class TestPanel extends JPanel implements MouseListener {
 	private static final long serialVersionUID = 1L;

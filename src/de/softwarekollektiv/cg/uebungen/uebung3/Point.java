@@ -1,4 +1,4 @@
-package de.softwarekollektiv;
+package de.softwarekollektiv.cg.uebungen.uebung3;
 
 public class Point {
   public final int x;
