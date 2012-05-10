@@ -118,12 +118,12 @@ Zunächst bauen wir uns eine Drehmatrix zur Rotation um die z-Achse:
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-A & = & \left(\begin{array}{ccc}
+ &  & \left(\begin{array}{ccc}
 \cos\alpha & \text{-}\sin\alpha & 0\\
 \sin\alpha & \cos\alpha & 0\\
 0 & 0 & 1
 \end{array}\right)\\
- & = & \left(\begin{array}{ccc}
+ &  & \left(\begin{array}{ccc}
 \frac{1}{2} & \text{-}\frac{\sqrt{3}}{2} & 0\\
 \frac{\sqrt{3}}{2} & \frac{1}{2} & 0\\
 0 & 0 & 1
@@ -156,7 +156,7 @@ Objekt
 :
 \begin_inset Formula 
 \[
-B=\left(\begin{array}{cccc}
+A=\left(\begin{array}{cccc}
 \frac{1}{2} & \text{-}\frac{\sqrt{3}}{2} & 0 & 7\\
 \frac{\sqrt{3}}{2} & \frac{1}{2} & 0 & 3\\
 0 & 0 & 1 & 4\\
@@ -176,12 +176,59 @@ So, weiter in der rendering pipeline.
  Matrix (aus der Mail übernommen!):
 \begin_inset Formula 
 \[
-C=\left(\begin{array}{cccc}
+B=\left(\begin{array}{cccc}
 \text{-}\frac{4}{5} & \text{-}\frac{3}{5} & 0 & \frac{37}{5}\\
 \text{-}\frac{3}{\sqrt{650}} & \frac{4}{\sqrt{650}} & \frac{25}{\sqrt{650}} & \text{-}\frac{91}{\sqrt{650}}\\
 \text{-}\frac{3}{\sqrt{26}} & \frac{4}{\sqrt{26}} & \text{-}\frac{1}{\sqrt{26}} & \text{-}\frac{13}{\sqrt{26}}\\
 0 & 0 & 0 & 1
 \end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Für die Abbildung in normalisierte Gerätekoordinaten brauchen wir die Koordinate
+n der Eckpunkte der Projektionsfläche, die sich im Abstand von 
+\begin_inset Formula $n_{\text{nah}}$
+\end_inset
+
+ orthogonal zu 
+\begin_inset Formula $\vec{n}$
+\end_inset
+
+ befindet.
+ Matrix 
+\begin_inset Formula $C$
+\end_inset
+
+ zur Abbildung in NDC lautet entsprechend der Vorlesung wie folgt:
+\begin_inset Formula 
+\begin{eqnarray*}
+C & = & \begin{pmatrix}\frac{2n_{\text{nah}}}{u_{\text{rechts}}-u_{\text{links}}} & 0 & \frac{u_{\text{rechts}}+u_{\text{links}}}{u_{\text{rechts}}-u_{\text{links}}} & 0\\
+0 & \frac{2n_{\text{Nah}}}{v_{\text{oben}}-v_{\text{unten}}} & \frac{v_{\text{oben}}+v_{\text{unten}}}{v_{\text{oben}}-v_{\text{unten}}} & 0\\
+0 & 0 & \text{-}\frac{n_{\text{fern}}+n_{\text{nah}}}{n_{\text{fern}}-n_{\text{nah}}} & \text{-}\frac{2n_{\text{fern}}n_{\text{nah}}}{n_{\text{fern}}-n_{\text{nah}}}\\
+0 & 0 & \text{-}1 & 0
+\end{pmatrix}\\
+ & = & \begin{pmatrix}\frac{12}{600} & 0 & 0 & 0\\
+0 & \frac{12}{400} & 0 & 0\\
+0 & 0 & \text{-}\frac{26}{14} & \text{-}\frac{240}{14}\\
+0 & 0 & \text{-}1 & 0
+\end{pmatrix}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Die Gesamtabbildung lautet also:
+\begin_inset Formula 
+\[
+C\cdot B\cdot A=
 \]
 
 \end_inset
