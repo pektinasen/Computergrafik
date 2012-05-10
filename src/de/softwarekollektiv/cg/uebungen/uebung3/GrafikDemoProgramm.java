@@ -14,14 +14,17 @@ import javax.swing.JPanel;
 class TestPanel extends JPanel implements MouseListener {
 	private static final long serialVersionUID = 1L;
 
+	// start end end point of line
 	Point from = new Point(10, 10);
 	Point to = from;
 
+	// points to draw on the panel
 	List<Point> points = new LinkedList<Point>();
-	
-	
 
 	@Override
+	/*
+	 * Not smart, but works 
+	 */
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		g.setColor(Color.gray);
@@ -49,9 +52,9 @@ class TestPanel extends JPanel implements MouseListener {
 	public void mouseMoved(MouseEvent e) {}
 	public void mouseDragged(MouseEvent e) {}
 
-	// mousePressed(): Mausknopf wurde betaetigt
 	// Hier: neue Punktkoordinaten aufnehmen
 	public void mousePressed(MouseEvent e) {
+		// decide if there are 2 points available to draw the line
 		if (to == null) {
 			to = new Point(e.getX(), e.getY());
 			points.add(to);
@@ -67,6 +70,12 @@ class TestPanel extends JPanel implements MouseListener {
 		setPixel(e.getX(), e.getY());
 	}
 
+	/*
+	 * kompakter Bresenham Algorithmus
+	 * 
+	 * @see <a href="http://de.wikipedia.org/wiki/Bresenham-Algorithmus#Kompakte_Variante">
+	 *      http://de.wikipedia.org/wiki/Bresenham-Algorithmus#Kompakte_Variante</a>
+	 */
 	public void bresenham_compact(Point from, Point to) {
 		int dx = Math.abs(to.x - from.x);
 		int sx = from.x < to.x ? 1 : -1;
@@ -91,57 +100,11 @@ class TestPanel extends JPanel implements MouseListener {
 			}
 		}
 	}
-	
-	public void bresenham(Point from, Point to) {
-		// REM Bresenham-Algorithmus für eine Linie im ersten Oktanten in
-		// Pseudo-Basic
-		// dx = xend-xstart
-		int dx = to.x - from.x;
-		// dy = yend-ystart
-		int dy = to.y - from.y;
-		// REM im ersten Oktanten muss 0 < dy <= dx sein
-		//
-		// REM Initialisierungen
-		// x = xstart
-		int x = from.x;
-		// y = ystart
-		int y = from.y;
-		// SETPIXEL x,y
-		setPixel(x, y);
-		// fehler = dx/2
-		int error = dx / 2;
-		//
-		// REM Pixelschleife: immer ein Schritt in schnelle Richtung, hin und
-		// wieder auch einer in langsame
-		// WHILE x < xend
-		while (x < to.x) {
-
-			// REM Schritt in schnelle Richtung
-			// x = x + 1
-			x++;
-			// fehler = fehler-dy
-			error -= dy;
-			// IF fehler < 0 THEN
-			if (error < 0) {
-
-				// REM Schritt in langsame Richtung
-				// y = y + 1
-				y = y + 1;
-				// fehler = fehler + dx
-				error += dx;
-				// END IF
-			}
-			// SETPIXEL x,y
-			setPixel(x, y);
-			// WEND
-		}
-	}
 
 	private void setPixel(int x, int y) {
 		points.add(new Point(x, y));
 		this.repaint();
 	}
-
 }
 
 public class GrafikDemoProgramm {
