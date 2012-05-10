@@ -27,7 +27,7 @@ public class Cube implements GLEventListener, MouseMotionListener {
 	private final float[] colorWhite = { 1.0f, 1.0f, 1.0f, 1.0f };
 	private final float[] colorGray = { 0.6f, 0.6f, 0.6f, 1.0f };
 	private final float[] colorRed = { 1.0f, 0.0f, 0.0f, 1.0f };
-	private final float[] colorBlue = { 0.0f, 0.0f, 0.1f, 1.0f };
+	private final float[] colorBlue = { 0.0f, 0.0f, 1.0f, 1.0f };
 	private final float[] colorYellow = { 1.0f, 1.0f, 0.0f, 1.0f };
 	private final float[] colorLightYellow = { .5f, .5f, 0.0f, 1.0f };
 	private final float[] colorGreen = { 0.0f, 1.0f, 0.0f, 1.0f };
@@ -85,13 +85,13 @@ public class Cube implements GLEventListener, MouseMotionListener {
 		gl.glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		drawSquareFace(gl);
 
-		/*setMaterial(gl, colorLightYellow);
+		setMaterial(gl, colorLightYellow);
 		gl.glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		drawSquareFace(gl);
 
 		setMaterial(gl, colorPurple);
 		gl.glRotatef(90, 1.0f, 0.0f, 0.0f);
-		drawSquareFace(gl);*/
+		drawSquareFace(gl);
 	}
 
 	private void setMaterial(GL2 gl, float[] color) {
@@ -122,6 +122,9 @@ public class Cube implements GLEventListener, MouseMotionListener {
 	@Override
 	public void init(GLAutoDrawable drawable) {
 		GL2 gl = drawable.getGL().getGL2();
+		
+		gl.glEnable(GL.GL_DEPTH_TEST);
+		
 		// First Switch the lights on.
 		gl.glEnable(GL2.GL_LIGHTING);
 		gl.glDisable(GL2.GL_LIGHT0);
