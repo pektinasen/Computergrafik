@@ -208,7 +208,7 @@ n der Eckpunkte der Projektionsfläche, die sich im Abstand von
 \begin_inset Formula 
 \begin{eqnarray*}
 C & = & \begin{pmatrix}\frac{2n_{\text{nah}}}{u_{\text{rechts}}-u_{\text{links}}} & 0 & \frac{u_{\text{rechts}}+u_{\text{links}}}{u_{\text{rechts}}-u_{\text{links}}} & 0\\
-0 & \frac{2n_{\text{Nah}}}{v_{\text{oben}}-v_{\text{unten}}} & \frac{v_{\text{oben}}+v_{\text{unten}}}{v_{\text{oben}}-v_{\text{unten}}} & 0\\
+0 & \frac{2n_{\text{nah}}}{v_{\text{oben}}-v_{\text{unten}}} & \frac{v_{\text{oben}}+v_{\text{unten}}}{v_{\text{oben}}-v_{\text{unten}}} & 0\\
 0 & 0 & \text{-}\frac{n_{\text{fern}}+n_{\text{nah}}}{n_{\text{fern}}-n_{\text{nah}}} & \text{-}\frac{2n_{\text{fern}}n_{\text{nah}}}{n_{\text{fern}}-n_{\text{nah}}}\\
 0 & 0 & \text{-}1 & 0
 \end{pmatrix}\\
@@ -227,13 +227,26 @@ C & = & \begin{pmatrix}\frac{2n_{\text{nah}}}{u_{\text{rechts}}-u_{\text{links}}
 \begin_layout Standard
 Die Gesamtabbildung lautet also:
 \begin_inset Formula 
-\[
-C\cdot B\cdot A=
-\]
+\begin{eqnarray*}
+C\cdot B\cdot A & = & C\text{\cdot}\begin{pmatrix}\text{-}\frac{4+3\sqrt{3}}{10} & \frac{4\sqrt{3}-3}{10} & 0 & 0\\
+\frac{4\sqrt{3}-3}{2\sqrt{650}} & \frac{3\sqrt{3}+4}{2\sqrt{650}} & \frac{25}{\sqrt{650}} & 0\\
+\frac{4\sqrt{3}-3}{2\sqrt{26}} & \frac{3\sqrt{3}+4}{2\sqrt{26}} & \text{-}\frac{1}{\sqrt{26}} & 0\\
+0 & 0 & 0 & 1
+\end{pmatrix}\\
+ & = & \begin{pmatrix}\text{-}\frac{12\cdot\left(4+3\sqrt{3}\right)}{6000} & \frac{12\cdot\left(4\sqrt{3}-3\right)}{6000} & 0 & 0\\
+\frac{12\cdot\left(4\sqrt{3}-3\right)}{800\sqrt{650}} & \frac{12\cdot\left(3\sqrt{3}+4\right)}{800\sqrt{650}} & \frac{12\cdot25}{400\sqrt{650}} & 0\\
+\text{-}\frac{26\cdot\left(4\sqrt{3}-3\right)}{28\sqrt{26}} & \text{-}\frac{26\cdot\left(3\sqrt{3}+4\right)}{2\sqrt{26}} & \frac{26}{14\sqrt{26}} & \text{-}\frac{240}{14}\\
+\text{-}\frac{4\sqrt{3}-3}{2\sqrt{26}} & \text{-}\frac{3\sqrt{3}+4}{2\sqrt{26}} & \frac{1}{\sqrt{26}} & 0
+\end{pmatrix}
+\end{eqnarray*}
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Na, ob das wohl stimmt?
 \end_layout
 
 \end_body
