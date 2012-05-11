@@ -1,0 +1,13 @@
+Getting started
+===============
+
+Go into "lib" subdirectory and run download.sh
+
+$ cd lib/
+$ ./download.sh
+
+Install jogl and gluegen-rt. For example, on Debian run:
+
+$ apt-get install libgluegen2-jni libgluegen2-rt-java libjogl2-jni libjogl2-java
+
+Open project with eclipse: Create a new project in this directory.
