@@ -61,7 +61,7 @@ class ColorComponent extends JPanel {
 		
 		for (int x = 1; x < this.getWidth(); x++)
 			for (int y = 1; y < this.getHeight(); y++){
-				g.setColor(new Color((x*x + y * y ) % r * r));
+				g.setColor(new Color((x*x + y*y) % (r * r)));
 				g.fillRect(x, y, 1, 1);
 				
 			}		
