@@ -111,5 +111,35 @@ f & = & \text{beliebig}
 
 \end_layout
 
+\begin_layout Subsection*
+b)
+\end_layout
+
+\begin_layout Standard
+Durch Ausprobieren gefunden:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+a & = & 20,09\\
+b & = & \text{-}89,97\\
+c & = & 100,73\\
+d & = & 0\\
+e & = & 0\\
+f & = & 0.37
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ist allerdings nur stark ausgedünnt.
+ Die inneren Punkten einer (flächenmäßig) größeren Ellipse konnten wir nicht
+ entsprechend erzeugen.
+\end_layout
+
 \end_body
 \end_document
