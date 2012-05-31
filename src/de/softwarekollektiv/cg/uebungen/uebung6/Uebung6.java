@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.io.IOException;
+import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -29,238 +31,16 @@ public class Uebung6 extends JFrame {
 		Canvas c = new Canvas(si);
 		c.setVisible(true);
 		this.add(c, BorderLayout.CENTER);
-
-		// First row: Specular
 		
-		Scene s = new Scene();
-		// Ambient reflection.
-		s.kar = 0.6f;
-		s.kag = 0.0f;
-		s.kab = 0.0f;
-		s.iar = 0.6f;
-		s.iag = 0.0f;
-		s.iab = 0.0f;
-		// Diffuse & specular reflection.
-		s.kdr = 0.0f;
-		s.kdg = 0.8f;
-		s.kdb = 0.8f;
-		s.ilr = 0.9f;
-		s.ilg = 0.5f;
-		s.ilb = 0.7f;
-		s.plx = 400f;
-		s.ply = 800f;
-		s.plz = -1200f;
-		s.c1 = 0.001f;
-		s.c2 = 0.0001f;
-		s.c3 = 0.0000001f;
-		s.ks = 0.21f;
-		s.n = 0.2f;
-		c.addScene(s);
+		List<Scene> scenes = null;
+		try {
+			scenes = SceneFactory.fromFile("res/scenes.txt");
+		} catch (IOException e) {}
 		
-		s = new Scene();
-		// Ambient reflection.
-		s.kar = 0.6f;
-		s.kag = 0.0f;
-		s.kab = 0.0f;
-		s.iar = 0.6f;
-		s.iag = 0.0f;
-		s.iab = 0.0f;
-		// Diffuse & specular reflection.
-		s.kdr = 0.0f;
-		s.kdg = 0.8f;
-		s.kdb = 0.8f;
-		s.ilr = 0.9f;
-		s.ilg = 0.5f;
-		s.ilb = 0.7f;
-		s.plx = 400f;
-		s.ply = 800f;
-		s.plz = -1200f;
-		s.c1 = 0.001f;
-		s.c2 = 0.0001f;
-		s.c3 = 0.0000001f;
-		s.ks = 0.1f;
-		s.n = 0.2f;
-		c.addScene(s);
-		
-		s = new Scene();
-		// Ambient reflection.
-		s.kar = 0.6f;
-		s.kag = 0.0f;
-		s.kab = 0.0f;
-		s.iar = 0.6f;
-		s.iag = 0.0f;
-		s.iab = 0.0f;
-		// Diffuse & specular reflection.
-		s.kdr = 0.0f;
-		s.kdg = 0.8f;
-		s.kdb = 0.8f;
-		s.ilr = 0.9f;
-		s.ilg = 0.5f;
-		s.ilb = 0.7f;
-		s.plx = 400f;
-		s.ply = 800f;
-		s.plz = -1200f;
-		s.c1 = 0.001f;
-		s.c2 = 0.0001f;
-		s.c3 = 0.0000001f;
-		s.ks = 0.1f;
-		s.n = 2f;
-		c.addScene(s);
-		
-		s = new Scene();
-		// Ambient reflection.
-		s.kar = 0.6f;
-		s.kag = 0.0f;
-		s.kab = 0.0f;
-		s.iar = 0.6f;
-		s.iag = 0.0f;
-		s.iab = 0.0f;
-		// Diffuse & specular reflection.
-		s.kdr = 0.0f;
-		s.kdg = 0.8f;
-		s.kdb = 0.8f;
-		s.ilr = 0.9f;
-		s.ilg = 0.5f;
-		s.ilb = 0.7f;
-		s.plx = 400f;
-		s.ply = 800f;
-		s.plz = -1200f;
-		s.c1 = 0.001f;
-		s.c2 = 0.0001f;
-		s.c3 = 0.0000001f;
-		s.ks = 0.05f;
-		s.n = 4f;
-		c.addScene(s);
-		
-		s = new Scene();
-		// Ambient reflection.
-		s.kar = 0.6f;
-		s.kag = 0.0f;
-		s.kab = 0.0f;
-		s.iar = 0.6f;
-		s.iag = 0.0f;
-		s.iab = 0.0f;
-		// Diffuse & specular reflection.
-		s.kdr = 0.0f;
-		s.kdg = 0.8f;
-		s.kdb = 0.8f;
-		s.ilr = 0.9f;
-		s.ilg = 0.5f;
-		s.ilb = 0.7f;
-		s.plx = 400f;
-		s.ply = 800f;
-		s.plz = -1200f;
-		s.c1 = 0.001f;
-		s.c2 = 0.0001f;
-		s.c3 = 0.0000001f;
-		s.ks = 0.5f;
-		s.n = 8f;
-		c.addScene(s);
-		
-		// Second row: Light position.
-		
-		s = new Scene();
-		// Ambient reflection.
-		s.kar = 0.5f;
-		s.kag = 0.0f;
-		s.kab = 0.5f;
-		s.iar = 0.5f;
-		s.iag = 0.0f;
-		s.iab = 0.5f;
-		// Diffuse & specular reflection.
-		s.kdr = 0.0f;
-		s.kdg = 0.8f;
-		s.kdb = 0.8f;
-		s.ilr = 0.2f;
-		s.ilg = 0.3f;
-		s.ilb = 0.4f;
-		s.plx = -400f;
-		s.ply = -400f;
-		s.plz = -1000f;
-		s.c1 = 0.001f;
-		s.c2 = 0.0001f;
-		s.c3 = 0.0000001f;
-		s.ks = 0.4f;
-		s.n = 2f;
-		c.addScene(s);
-		
-		s = new Scene();
-		// Ambient reflection.
-		s.kar = 0.5f;
-		s.kag = 0.0f;
-		s.kab = 0.5f;
-		s.iar = 0.5f;
-		s.iag = 0.0f;
-		s.iab = 0.5f;
-		// Diffuse & specular reflection.
-		s.kdr = 0.0f;
-		s.kdg = 0.8f;
-		s.kdb = 0.8f;
-		s.ilr = 0.2f;
-		s.ilg = 0.3f;
-		s.ilb = 0.4f;
-		s.plx = 400f;
-		s.ply = -400f;
-		s.plz = -1500f;
-		s.c1 = 0.001f;
-		s.c2 = 0.0001f;
-		s.c3 = 0.0000001f;
-		s.ks = 0.4f;
-		s.n = 2f;
-		c.addScene(s);
-		
-		s = new Scene();
-		// Ambient reflection.
-		s.kar = 0.5f;
-		s.kag = 0.0f;
-		s.kab = 0.5f;
-		s.iar = 0.5f;
-		s.iag = 0.0f;
-		s.iab = 0.5f;
-		// Diffuse & specular reflection.
-		s.kdr = 0.0f;
-		s.kdg = 0.8f;
-		s.kdb = 0.8f;
-		s.ilr = 0.2f;
-		s.ilg = 0.3f;
-		s.ilb = 0.4f;
-		s.plx = 400f;
-		s.ply = 400f;
-		s.plz = -2000f;
-		s.c1 = 0.001f;
-		s.c2 = 0.0001f;
-		s.c3 = 0.0000001f;
-		s.ks = 0.4f;
-		s.n = 2f;
-		c.addScene(s);
-		
-		s = new Scene();
-		// Ambient reflection.
-		s.kar = 0.5f;
-		s.kag = 0.0f;
-		s.kab = 0.5f;
-		s.iar = 0.5f;
-		s.iag = 0.0f;
-		s.iab = 0.5f;
-		// Diffuse & specular reflection.
-		s.kdr = 0.0f;
-		s.kdg = 0.8f;
-		s.kdb = 0.8f;
-		s.ilr = 0.2f;
-		s.ilg = 0.3f;
-		s.ilb = 0.4f;
-		s.plx = -400f;
-		s.ply = 400f;
-		s.plz = -2500f;
-		s.c1 = 0.001f;
-		s.c2 = 0.0001f;
-		s.c3 = 0.0000001f;
-		s.ks = 0.4f;
-		s.n = 2f;
-		c.addScene(s);
-		
-		
-		validate();
+		for (Scene s : scenes) {
+			c.addScene(s);
+		}
+	
 	}
 	
 	private static class SceneInformation extends JPanel {

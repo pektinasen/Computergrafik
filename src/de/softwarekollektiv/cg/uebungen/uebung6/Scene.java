@@ -10,15 +10,15 @@ class Scene {
 	float kag;
 	float kab;
 
-	// Diffuse reflection coefficient of the plane.
-	float kdr;
-	float kdg;
-	float kdb;
-
 	// Intensity of ambient light.
 	float iar;
 	float iag;
 	float iab;
+
+	// Diffuse reflection coefficient of the plane.
+	float kdr;
+	float kdg;
+	float kdb;
 
 	// Intensity of light spot.
 	float ilr;
