@@ -1,11 +1,9 @@
 package de.softwarekollektiv.cg.uebungen.uebung7;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -14,6 +12,7 @@ import org.ejml.simple.SimpleMatrix;
 
 import de.softwarekollektiv.cg.gl.math.Coordinate2f;
 
+@SuppressWarnings("serial")
 public class Uebung7 extends JFrame {
 
 	Uebung7() {
@@ -76,9 +75,7 @@ public class Uebung7 extends JFrame {
 		SimpleMatrix uberMatrix = cam.getNdcMatrix().mult(cam.getAugMatrix())
 				.mult(transRotMatrix.mult(scaleMatrix));
 
-		Random r = new Random();
 		for (Face f : faces) {
-			g.setColor(new Color(r.nextInt()));
 			Coordinate2f[] vertices = new Coordinate2f[3];
 			for (int i = 0; i < 3; i++) {
 				Vector v = f.getVertex(i);
@@ -94,13 +91,6 @@ public class Uebung7 extends JFrame {
 				double ndcy = ndcVector.get(1, 0);
 				vertices[i] = new Coordinate2f(((ndcx + 1) * (400 / 2)), ((ndcy + 1) * (400 / 2)));
 			}
-			/*
-			
-			g.setColor(Color.BLACK);
-			g.drawLine((int) vertices[0].getX(), (int) vertices[0].getY(), (int) vertices[1].getX(),(int)  vertices[1].getY());
-			g.drawLine((int) vertices[2].getX(), (int) vertices[2].getY(),(int)  vertices[1].getX(),(int)  vertices[1].getY());
-			g.drawLine((int) vertices[2].getX(), (int) vertices[2].getY(), (int) vertices[0].getX(),(int)  vertices[0].getY());
-			*/
 			
 			// Prepare for barycentric coordinates.
 			SimpleMatrix Mb = new SimpleMatrix(new double[][] {
@@ -115,8 +105,8 @@ public class Uebung7 extends JFrame {
 			}).invert();
 
 			// Sort:
-			Coordinate2f[] pixel = Arrays.copyOf(vertices, 3);
-			Arrays.sort(pixel, new Comparator<Coordinate2f>() {
+			Coordinate2f[] sorted = Arrays.copyOf(vertices, 3);
+			Arrays.sort(sorted, new Comparator<Coordinate2f>() {
 				public int compare(Coordinate2f arg0, Coordinate2f arg1) {
 					return (arg0.getY() < arg1.getY() ? -1
 							: ((arg0.getY() > arg1.getY() ? 1 : 0)));
@@ -124,34 +114,34 @@ public class Uebung7 extends JFrame {
 			});
 
 			// Raster:
-			double ot = pixel[0].getX() * (pixel[2].getY() - pixel[1].getY()) + 
-						pixel[2].getX() * (pixel[1].getY() - pixel[0].getY()) +
-						pixel[1].getX() * (pixel[0].getY() - pixel[2].getY());
+			double ot = sorted[0].getX() * (sorted[2].getY() - sorted[1].getY()) + 
+						sorted[2].getX() * (sorted[1].getY() - sorted[0].getY()) +
+						sorted[1].getX() * (sorted[0].getY() - sorted[2].getY());
 			int left = ot > 0 ? 1 : 2;
 			int right = 2 - left + 1;
 
 			double[] dxl = new double[2];
 			double[] dxr = new double[2];
-			double dyl = pixel[left].getY() - pixel[0].getY();
-			dxl[0] = (pixel[left].getX() - pixel[0].getX()) / dyl;
-			double dyr = pixel[right].getY() - pixel[0].getY();
-			dxr[0] = (pixel[right].getX() - pixel[0].getX()) / dyr;
+			double dyl = sorted[left].getY() - sorted[0].getY();
+			dxl[0] = (sorted[left].getX() - sorted[0].getX()) / dyl;
+			double dyr = sorted[right].getY() - sorted[0].getY();
+			dxr[0] = (sorted[right].getX() - sorted[0].getX()) / dyr;
 			
 			if(left == 1) {
-				dyl = pixel[2].getY() - pixel[1].getY();
-				dxl[1] = (pixel[2].getX() - pixel[1].getX()) / dyl;
+				dyl = sorted[2].getY() - sorted[1].getY();
+				dxl[1] = (sorted[2].getX() - sorted[1].getX()) / dyl;
 				dxr[1] = dxr[0];
 			} else {
-				dyr = pixel[2].getY() - pixel[1].getY();
-				dxr[1] = (pixel[2].getX() - pixel[1].getX()) / dyr;
+				dyr = sorted[2].getY() - sorted[1].getY();
+				dxr[1] = (sorted[2].getX() - sorted[1].getX()) / dyr;
 				dxl[1] = dxl[0];
 			}
 
-			double xl = pixel[0].getX();
+			double xl = sorted[0].getX();
 			double xr = xl;
-			int yi = (int) Math.round(pixel[0].getY());
+			int yi = (int) Math.round(sorted[0].getY());
 			
-			double[] t = {pixel[1].getY(), pixel[2].getY()};
+			double[] t = {sorted[1].getY(), sorted[2].getY()};
 			for(int ti = 0; ti < 2; ti++) {
 				for(; yi <= (int) Math.round(t[ti]); yi++) {
 					for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
@@ -174,31 +164,7 @@ public class Uebung7 extends JFrame {
 					xl += dxl[ti];
 					xr += dxr[ti];
 				}
-			}
-			
-
-			
-
-			/*
-			
-			// Baryzentrische Koordinaten.
-			SimpleMatrix lambda = new SimpleMatrix(new double[][] {
-					{
-						vertices[0].getX() - vertices[2].getX(),
-						vertices[1].getX() - vertices[2].getX(),
-					},
-					{
-						vertices[0].getY() - vertices[2].getY(),
-						vertices[1].getY() - vertices[2].getY(),
-					}
-			}).invert().mult(
-			
-			double lambda1 = lambda.get(0, 0);
-			double lambda2 = lambda.get(1, 0);
-			double lambda3 = 1 - lambda1 - lambda2;
-								
-*/
-			
+			}			
 		}
 	}
 
