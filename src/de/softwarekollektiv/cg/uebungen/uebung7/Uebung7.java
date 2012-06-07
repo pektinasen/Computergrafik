@@ -23,6 +23,7 @@ public class Uebung7 extends JFrame{
 				render(g);
 			}
 		};
+		canvas.setSize(400, 400);
 		this.add(canvas);
 		this.setVisible(true);
 		canvas.revalidate();
@@ -67,10 +68,11 @@ public class Uebung7 extends JFrame{
 		});
 		
 		// Translationsmatrix
+		double alpha = Math.toRadians(-45);
 		SimpleMatrix transRotMatrix = new SimpleMatrix(new double[][] {
-				{Math.cos(-45), 0 , Math.sin(-45), 0},
+				{Math.cos(alpha), 0 , Math.sin(alpha), 0},
 				{0,1,0,-25},
-				{- Math.sin(-45), 0 , Math.cos(-45), 75},
+				{- Math.sin(alpha), 0 , Math.cos(alpha), 75},
 				{0,0,0,1}
 		});
 	
