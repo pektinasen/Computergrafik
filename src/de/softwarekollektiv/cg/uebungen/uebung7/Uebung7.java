@@ -1,11 +1,9 @@
 package de.softwarekollektiv.cg.uebungen.uebung7;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -14,6 +12,7 @@ import org.ejml.simple.SimpleMatrix;
 
 import de.softwarekollektiv.cg.gl.math.Coordinate2f;
 
+@SuppressWarnings("serial")
 public class Uebung7 extends JFrame {
 
 	Uebung7() {
@@ -76,9 +75,7 @@ public class Uebung7 extends JFrame {
 		SimpleMatrix uberMatrix = cam.getNdcMatrix().mult(cam.getAugMatrix())
 				.mult(transRotMatrix.mult(scaleMatrix));
 
-		Random r = new Random();
 		for (Face f : faces) {
-
 			Coordinate2f[] vertices = new Coordinate2f[3];
 			for (int i = 0; i < 3; i++) {
 				Vector v = f.getVertex(i);
@@ -90,76 +87,13 @@ public class Uebung7 extends JFrame {
 				ndcVector = ndcVector.divide(ndcVector.get(3, 0));
 				
 				// Viewport.
-				double vx = ndcVector.get(0, 0);
-				double vy = ndcVector.get(1, 0);
-				vertices[i] = new Coordinate2f(((vx + 1) * (400 / 2)), ((vy + 1) * (400 / 2)));
-			}
-			/*
-			
-			g.setColor(Color.BLACK);
-			g.drawLine((int) vertices[0].getX(), (int) vertices[0].getY(), (int) vertices[1].getX(),(int)  vertices[1].getY());
-			g.drawLine((int) vertices[2].getX(), (int) vertices[2].getY(),(int)  vertices[1].getX(),(int)  vertices[1].getY());
-			g.drawLine((int) vertices[2].getX(), (int) vertices[2].getY(), (int) vertices[0].getX(),(int)  vertices[0].getY());
-			*/
-			
-			g.setColor(new Color(r.nextInt()));
-
-			// Sort:
-			Arrays.sort(vertices, new Comparator<Coordinate2f>() {
-				public int compare(Coordinate2f arg0, Coordinate2f arg1) {
-					return (arg0.getY() < arg1.getY() ? -1
-							: ((arg0.getY() > arg1.getY() ? 1 : 0)));
-				}
-			});
-
-			// Raster:
-			double ot = vertices[0].getX() * (vertices[2].getY() - vertices[1].getY()) + 
-						vertices[2].getX() * (vertices[1].getY() - vertices[0].getY()) +
-						vertices[1].getX() * (vertices[0].getY() - vertices[2].getY());
-			int left = ot > 0 ? 1 : 2;
-			int right = 2 - left + 1;
-			System.out.println(left);
-
-			double dyl = vertices[left].getY() - vertices[0].getY();
-			double dxl = (vertices[left].getX() - vertices[0].getX()) / dyl;
-			double dyr = vertices[right].getY() - vertices[0].getY();
-			double dxr = (vertices[right].getX() - vertices[0].getX()) / dyr;
-
-			double xl = vertices[0].getX();
-			double xr = xl;
-			int yi = (int) Math.round(vertices[0].getY());
-			
-			for(; yi <= (int) Math.round(vertices[1].getY()); yi++) {
-				for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
-					g.fillRect(xi, yi, 1, 1);
-				}
-				
-				xl += dxl;
-				xr += dxr;
+				double ndcx = ndcVector.get(0, 0);
+				double ndcy = ndcVector.get(1, 0);
+				vertices[i] = new Coordinate2f(((ndcx + 1) * (400 / 2)), ((ndcy + 1) * (400 / 2)));
 			}
 			
-			if(left == 1) {
-				dyl = vertices[2].getY() - vertices[1].getY();
-				dxl = (vertices[2].getX() - vertices[1].getX()) / dyl;
-			} else {
-				dyr = vertices[2].getY() - vertices[1].getY();
-				dxr = (vertices[2].getX() - vertices[1].getX()) / dyr;
-			}
-			
-			for(; yi <= (int) Math.round(vertices[2].getY()); yi++) {
-				for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
-					g.fillRect(xi, yi, 1, 1);
-				}
-				
-				xl += dxl;
-				xr += dxr;
-			}
-			
-
-			/*
-			
-			// Baryzentrische Koordinaten.
-			SimpleMatrix lambda = new SimpleMatrix(new double[][] {
+			// Prepare for barycentric coordinates.
+			SimpleMatrix Mb = new SimpleMatrix(new double[][] {
 					{
 						vertices[0].getX() - vertices[2].getX(),
 						vertices[1].getX() - vertices[2].getX(),
@@ -168,21 +102,69 @@ public class Uebung7 extends JFrame {
 						vertices[0].getY() - vertices[2].getY(),
 						vertices[1].getY() - vertices[2].getY(),
 					}
-			}).invert().mult(new SimpleMatrix(new double[][] {
-					{
-						xxp - vertices[2].getX()
-					},
-					{
-						yy - vertices[2].getY()
+			}).invert();
+
+			// Sort:
+			Coordinate2f[] sorted = Arrays.copyOf(vertices, 3);
+			Arrays.sort(sorted, new Comparator<Coordinate2f>() {
+				public int compare(Coordinate2f arg0, Coordinate2f arg1) {
+					return (arg0.getY() < arg1.getY() ? -1
+							: ((arg0.getY() > arg1.getY() ? 1 : 0)));
+				}
+			});
+
+			// Raster:
+			double ot = sorted[0].getX() * (sorted[2].getY() - sorted[1].getY()) + 
+						sorted[2].getX() * (sorted[1].getY() - sorted[0].getY()) +
+						sorted[1].getX() * (sorted[0].getY() - sorted[2].getY());
+			int left = ot > 0 ? 1 : 2;
+			int right = 2 - left + 1;
+
+			double[] dxl = new double[2];
+			double[] dxr = new double[2];
+			double dyl = sorted[left].getY() - sorted[0].getY();
+			dxl[0] = (sorted[left].getX() - sorted[0].getX()) / dyl;
+			double dyr = sorted[right].getY() - sorted[0].getY();
+			dxr[0] = (sorted[right].getX() - sorted[0].getX()) / dyr;
+			
+			if(left == 1) {
+				dyl = sorted[2].getY() - sorted[1].getY();
+				dxl[1] = (sorted[2].getX() - sorted[1].getX()) / dyl;
+				dxr[1] = dxr[0];
+			} else {
+				dyr = sorted[2].getY() - sorted[1].getY();
+				dxr[1] = (sorted[2].getX() - sorted[1].getX()) / dyr;
+				dxl[1] = dxl[0];
+			}
+
+			double xl = sorted[0].getX();
+			double xr = xl;
+			int yi = (int) Math.round(sorted[0].getY());
+			
+			double[] t = {sorted[1].getY(), sorted[2].getY()};
+			for(int ti = 0; ti < 2; ti++) {
+				for(; yi <= (int) Math.round(t[ti]); yi++) {
+					for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
+						SimpleMatrix lambda = Mb.mult(new SimpleMatrix(new double[][] {
+								{
+									xi - vertices[2].getX()
+								},
+								{
+									yi - vertices[2].getY()
+								}
+						}));
+						double lambda1 = lambda.get(0, 0);
+						double lambda2 = lambda.get(1, 0);
+						double lambda3 = 1 - lambda1 - lambda2;
+						
+						g.setColor(f.getColor(lambda1, lambda2, lambda3));
+						g.fillRect(xi, yi, 1, 1);				
 					}
-			}));
-			
-			double lambda1 = lambda.get(0, 0);
-			double lambda2 = lambda.get(1, 0);
-			double lambda3 = 1 - lambda1 - lambda2;
-								
-*/
-			
+					
+					xl += dxl[ti];
+					xr += dxr[ti];
+				}
+			}			
 		}
 	}
 
