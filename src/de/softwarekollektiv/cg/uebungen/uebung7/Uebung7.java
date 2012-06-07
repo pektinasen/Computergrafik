@@ -1,10 +1,14 @@
 package de.softwarekollektiv.cg.uebungen.uebung7;
 
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -15,7 +19,8 @@ import de.softwarekollektiv.cg.gl.math.Coordinate2f;
 @SuppressWarnings("serial")
 public class Uebung7 extends JFrame {
 
-	Uebung7() {
+	Uebung7() throws IOException {
+		setup();
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(400, 400);
 		JPanel canvas = new JPanel() {
@@ -28,19 +33,30 @@ public class Uebung7 extends JFrame {
 		canvas.setSize(400, 400);
 		this.add(canvas);
 		this.setVisible(true);
+	
 		canvas.revalidate();
 	}
-
-	void render(Graphics g) {
+	
+	private List<Face> faces;
+	private Camera cam;
+	
+	void setup() throws IOException {
+		
+		// Textures
+		File img = new File("dice_six.png");
+		BufferedImage bimg = ImageIO.read(img);
+		
+		Texture tf1 = new Texture(bimg, new double[][]{{0, 0}, {0, 1}, {1, 1}});
+		Texture tf2 = new Texture(bimg, new double[][]{{0, 0}, {1, 1}, {1, 0}});
 
 		// Define the cube: Face A
 		Vector v1 = new Vector(0, 0, 0);
 		Vector v2 = new Vector(0, 1, 0);
 		Vector v3 = new Vector(0, 0, 1);
 		Vector v4 = new Vector(0, 1, 1);
-		Face f1 = new Face(v1, v2, v4);
-		Face f2 = new Face(v1, v4, v3);
-
+		Face f1 = new Face(v1, v2, v4, tf1);
+		Face f2 = new Face(v1, v4, v3, tf2);
+		
 		// Define the cube: Face B
 		Vector w1 = new Vector(0, 0, 0);
 		Vector w2 = new Vector(0, 1, 0);
@@ -48,11 +64,11 @@ public class Uebung7 extends JFrame {
 		Vector w4 = new Vector(1, 1, 0);
 		Face k1 = new Face(w1, w2, w4);
 		Face k2 = new Face(w1, w4, w3);
-
-		List<Face> faces = Arrays.asList(f1, f2, k1, k2);
-
+		
+		faces = Arrays.asList(new Face[]{f1, f2, k1, k2});
+		
 		// Define the Camera
-		Camera cam = new Camera();
+		cam = new Camera();
 		cam.setPosition(0, 0, 0);
 		cam.setDirection(0, 0, 1);
 		cam.setTop(0, 1, 0);
@@ -60,14 +76,17 @@ public class Uebung7 extends JFrame {
 		cam.n_distant = 100;
 		cam.aspect_ratio = 1;
 		cam.fov = 60;
+	}
 
+	void render(Graphics g) {
+		
 		// erstmal gross machen
 		SimpleMatrix scaleMatrix = new SimpleMatrix(new double[][] {
 				{ 50, 0, 0, 0 }, { 0, 50, 0, 0 }, { 0, 0, 50, 0 },
 				{ 0, 0, 0, 1 } });
 
 		// Translationsmatrix
-		double alpha = Math.toRadians(-45);
+		double alpha = Math.toRadians(-65);
 		SimpleMatrix transRotMatrix = new SimpleMatrix(new double[][] {
 				{ Math.cos(alpha), 0, Math.sin(alpha), 0 }, { 0, 1, 0, -25 },
 				{ -Math.sin(alpha), 0, Math.cos(alpha), 75 }, { 0, 0, 0, 1 } });
@@ -147,10 +166,10 @@ public class Uebung7 extends JFrame {
 					for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
 						SimpleMatrix lambda = Mb.mult(new SimpleMatrix(new double[][] {
 								{
-									xi - vertices[2].getX()
+									xi +0.5 - vertices[2].getX()
 								},
 								{
-									yi - vertices[2].getY()
+									yi+0.5 - vertices[2].getY()
 								}
 						}));
 						double lambda1 = lambda.get(0, 0);
@@ -168,9 +187,8 @@ public class Uebung7 extends JFrame {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		new Uebung7();
-
 	}
 
 }

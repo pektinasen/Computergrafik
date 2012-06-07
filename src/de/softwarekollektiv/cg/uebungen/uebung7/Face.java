@@ -11,8 +11,8 @@ import java.util.Iterator;
  */
 public class Face implements Iterable<Vector>{
 	
-
 	Vector[] v = new Vector[3];
+	private Texture t;
 
 	public Face(Vector v1, Vector v2, Vector v3) {
 		super();
@@ -21,6 +21,11 @@ public class Face implements Iterable<Vector>{
 		this.v[2] = v3;
 	}
 	
+	public Face(Vector v1, Vector v2, Vector v3, Texture tf1) {
+		this(v1, v2, v3);
+		this.t = tf1;
+	}
+
 	public Vector getVertex(int idx) {
 		return v[idx];
 	}
@@ -43,7 +48,10 @@ public class Face implements Iterable<Vector>{
 //			System.out.println("lambda3: " + lambda3);
 			return Color.BLACK;
 		}
-		return new Color((float) lambda1, (float) lambda2, (float) lambda3);
+		if(t != null)
+			return t.getColor(lambda1, lambda2, lambda3);
+		else
+			return new Color((float) lambda1, (float) lambda2, (float) lambda3);
 	}
 
 
