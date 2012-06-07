@@ -94,13 +94,13 @@ public class Uebung7 extends JFrame {
 				double vy = ndcVector.get(1, 0);
 				vertices[i] = new Coordinate2f(((vx + 1) * (400 / 2)), ((vy + 1) * (400 / 2)));
 			}
-			
+			/*
 			
 			g.setColor(Color.BLACK);
 			g.drawLine((int) vertices[0].getX(), (int) vertices[0].getY(), (int) vertices[1].getX(),(int)  vertices[1].getY());
 			g.drawLine((int) vertices[2].getX(), (int) vertices[2].getY(),(int)  vertices[1].getX(),(int)  vertices[1].getY());
 			g.drawLine((int) vertices[2].getX(), (int) vertices[2].getY(), (int) vertices[0].getX(),(int)  vertices[0].getY());
-			
+			*/
 			
 			g.setColor(new Color(r.nextInt()));
 
@@ -127,9 +127,9 @@ public class Uebung7 extends JFrame {
 
 			double xl = vertices[0].getX();
 			double xr = xl;
-			double y = vertices[0].getY();
+			int yi = (int) Math.round(vertices[0].getY());
 			
-			for(int yi = (int) Math.round(y); yi <= (int) Math.round(vertices[1].getY()); yi++) {
+			for(; yi <= (int) Math.round(vertices[1].getY()); yi++) {
 				for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
 					g.fillRect(xi, yi, 1, 1);
 				}
@@ -145,8 +145,8 @@ public class Uebung7 extends JFrame {
 				dyr = vertices[2].getY() - vertices[1].getY();
 				dxr = (vertices[2].getX() - vertices[1].getX()) / dyr;
 			}
-			/*
-			for(int yi = (int) Math.round(y); yi <= (int) Math.round(vertices[2].getY()); yi++) {
+			
+			for(; yi <= (int) Math.round(vertices[2].getY()); yi++) {
 				for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
 					g.fillRect(xi, yi, 1, 1);
 				}
@@ -154,7 +154,7 @@ public class Uebung7 extends JFrame {
 				xl += dxl;
 				xr += dxr;
 			}
-			*/
+			
 
 			/*
 			
