@@ -78,7 +78,7 @@ public class Uebung7 extends JFrame {
 
 		Random r = new Random();
 		for (Face f : faces) {
-
+			g.setColor(new Color(r.nextInt()));
 			Coordinate2f[] vertices = new Coordinate2f[3];
 			for (int i = 0; i < 3; i++) {
 				Vector v = f.getVertex(i);
@@ -90,9 +90,9 @@ public class Uebung7 extends JFrame {
 				ndcVector = ndcVector.divide(ndcVector.get(3, 0));
 				
 				// Viewport.
-				double vx = ndcVector.get(0, 0);
-				double vy = ndcVector.get(1, 0);
-				vertices[i] = new Coordinate2f(((vx + 1) * (400 / 2)), ((vy + 1) * (400 / 2)));
+				double ndcx = ndcVector.get(0, 0);
+				double ndcy = ndcVector.get(1, 0);
+				vertices[i] = new Coordinate2f(((ndcx + 1) * (400 / 2)), ((ndcy + 1) * (400 / 2)));
 			}
 			/*
 			
@@ -102,10 +102,21 @@ public class Uebung7 extends JFrame {
 			g.drawLine((int) vertices[2].getX(), (int) vertices[2].getY(), (int) vertices[0].getX(),(int)  vertices[0].getY());
 			*/
 			
-			g.setColor(new Color(r.nextInt()));
+			// Prepare for barycentric coordinates.
+			SimpleMatrix Mb = new SimpleMatrix(new double[][] {
+					{
+						vertices[0].getX() - vertices[2].getX(),
+						vertices[1].getX() - vertices[2].getX(),
+					},
+					{
+						vertices[0].getY() - vertices[2].getY(),
+						vertices[1].getY() - vertices[2].getY(),
+					}
+			}).invert();
 
 			// Sort:
-			Arrays.sort(vertices, new Comparator<Coordinate2f>() {
+			Coordinate2f[] pixel = Arrays.copyOf(vertices, 3);
+			Arrays.sort(pixel, new Comparator<Coordinate2f>() {
 				public int compare(Coordinate2f arg0, Coordinate2f arg1) {
 					return (arg0.getY() < arg1.getY() ? -1
 							: ((arg0.getY() > arg1.getY() ? 1 : 0)));
@@ -113,47 +124,59 @@ public class Uebung7 extends JFrame {
 			});
 
 			// Raster:
-			double ot = vertices[0].getX() * (vertices[2].getY() - vertices[1].getY()) + 
-						vertices[2].getX() * (vertices[1].getY() - vertices[0].getY()) +
-						vertices[1].getX() * (vertices[0].getY() - vertices[2].getY());
+			double ot = pixel[0].getX() * (pixel[2].getY() - pixel[1].getY()) + 
+						pixel[2].getX() * (pixel[1].getY() - pixel[0].getY()) +
+						pixel[1].getX() * (pixel[0].getY() - pixel[2].getY());
 			int left = ot > 0 ? 1 : 2;
 			int right = 2 - left + 1;
-			System.out.println(left);
 
-			double dyl = vertices[left].getY() - vertices[0].getY();
-			double dxl = (vertices[left].getX() - vertices[0].getX()) / dyl;
-			double dyr = vertices[right].getY() - vertices[0].getY();
-			double dxr = (vertices[right].getX() - vertices[0].getX()) / dyr;
-
-			double xl = vertices[0].getX();
-			double xr = xl;
-			int yi = (int) Math.round(vertices[0].getY());
-			
-			for(; yi <= (int) Math.round(vertices[1].getY()); yi++) {
-				for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
-					g.fillRect(xi, yi, 1, 1);
-				}
-				
-				xl += dxl;
-				xr += dxr;
-			}
+			double[] dxl = new double[2];
+			double[] dxr = new double[2];
+			double dyl = pixel[left].getY() - pixel[0].getY();
+			dxl[0] = (pixel[left].getX() - pixel[0].getX()) / dyl;
+			double dyr = pixel[right].getY() - pixel[0].getY();
+			dxr[0] = (pixel[right].getX() - pixel[0].getX()) / dyr;
 			
 			if(left == 1) {
-				dyl = vertices[2].getY() - vertices[1].getY();
-				dxl = (vertices[2].getX() - vertices[1].getX()) / dyl;
+				dyl = pixel[2].getY() - pixel[1].getY();
+				dxl[1] = (pixel[2].getX() - pixel[1].getX()) / dyl;
+				dxr[1] = dxr[0];
 			} else {
-				dyr = vertices[2].getY() - vertices[1].getY();
-				dxr = (vertices[2].getX() - vertices[1].getX()) / dyr;
+				dyr = pixel[2].getY() - pixel[1].getY();
+				dxr[1] = (pixel[2].getX() - pixel[1].getX()) / dyr;
+				dxl[1] = dxl[0];
+			}
+
+			double xl = pixel[0].getX();
+			double xr = xl;
+			int yi = (int) Math.round(pixel[0].getY());
+			
+			double[] t = {pixel[1].getY(), pixel[2].getY()};
+			for(int ti = 0; ti < 2; ti++) {
+				for(; yi <= (int) Math.round(t[ti]); yi++) {
+					for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
+						SimpleMatrix lambda = Mb.mult(new SimpleMatrix(new double[][] {
+								{
+									xi - vertices[2].getX()
+								},
+								{
+									yi - vertices[2].getY()
+								}
+						}));
+						double lambda1 = lambda.get(0, 0);
+						double lambda2 = lambda.get(1, 0);
+						double lambda3 = 1 - lambda1 - lambda2;
+						
+						g.setColor(f.getColor(lambda1, lambda2, lambda3));
+						g.fillRect(xi, yi, 1, 1);				
+					}
+					
+					xl += dxl[ti];
+					xr += dxr[ti];
+				}
 			}
 			
-			for(; yi <= (int) Math.round(vertices[2].getY()); yi++) {
-				for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
-					g.fillRect(xi, yi, 1, 1);
-				}
-				
-				xl += dxl;
-				xr += dxr;
-			}
+
 			
 
 			/*
@@ -168,14 +191,7 @@ public class Uebung7 extends JFrame {
 						vertices[0].getY() - vertices[2].getY(),
 						vertices[1].getY() - vertices[2].getY(),
 					}
-			}).invert().mult(new SimpleMatrix(new double[][] {
-					{
-						xxp - vertices[2].getX()
-					},
-					{
-						yy - vertices[2].getY()
-					}
-			}));
+			}).invert().mult(
 			
 			double lambda1 = lambda.get(0, 0);
 			double lambda2 = lambda.get(1, 0);

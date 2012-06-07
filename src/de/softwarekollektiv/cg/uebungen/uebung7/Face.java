@@ -31,6 +31,18 @@ public class Face implements Iterable<Vector>{
 	}
 
 	public Color getColor(double lambda1, double lambda2, double lambda3) {
+		if(lambda1 < 0) {
+//			System.out.println("lambda1: " + lambda1);
+			return Color.BLACK;
+		}
+		if(lambda2 < 0) {
+//			System.out.println("lambda2: " + lambda2);
+			return Color.BLACK;
+		}
+		if(lambda3 < 0) {
+//			System.out.println("lambda3: " + lambda3);
+			return Color.BLACK;
+		}
 		return new Color((float) lambda1, (float) lambda2, (float) lambda3);
 	}
 
