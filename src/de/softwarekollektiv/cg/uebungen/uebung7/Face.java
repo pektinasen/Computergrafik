@@ -1,5 +1,7 @@
 package de.softwarekollektiv.cg.uebungen.uebung7;
 
+import java.awt.Color;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -10,50 +12,26 @@ import java.util.Iterator;
 public class Face implements Iterable<Vector>{
 	
 
-	Vector v1;
-	Vector v2;
-	Vector v3;
+	Vector[] v = new Vector[3];
 
 	public Face(Vector v1, Vector v2, Vector v3) {
 		super();
-		this.v1 = v1;
-		this.v2 = v2;
-		this.v3 = v3;
+		this.v[0] = v1;
+		this.v[1] = v2;
+		this.v[2] = v3;
+	}
+	
+	public Vector getVertex(int idx) {
+		return v[idx];
 	}
 
 	@Override
 	public Iterator<Vector> iterator() {
-		// TODO Auto-generated method stub
-		return new Iterator<Vector>() {
-			
-			int i = -1;
-			
-			@Override
-			public boolean hasNext() {
-				// TODO Auto-generated method stub
-				return (i < 2);
-			}
+		return Arrays.asList(v).iterator();
+	}
 
-			@Override
-			public Vector next() {
-				i++;
-				if (i == 0 ) {
-					return v1;
-				} 
-				if (i == 1 ) {
-					return v2;
-				}
-				if (i == 2 ) {
-					return v3;
-				}
-				return null;
-			}
-
-			@Override
-			public void remove() {
-				System.err.println("Not supported Operation");
-			}
-		};
+	public Color getColor(double lambda1, double lambda2, double lambda3) {
+		return new Color((float) lambda1, (float) lambda2, (float) lambda3);
 	}
 
 
