@@ -2,8 +2,6 @@ package de.softwarekollektiv.cg.uebungen.uebung7;
 
 import org.ejml.simple.SimpleMatrix;
 
-import sun.java2d.pipe.SpanShapeRenderer.Simple;
-
 public class Camera {
 
 	double posX;
@@ -22,8 +20,8 @@ public class Camera {
 	
 	double n_close;
 	double n_distant;
-	
-	private int vOben;
+	double aspect_ratio; // width/height
+	double fov;	// Horizontal field of view (e.g., 60 degrees)
 	
 	void setPosition(double x, double y, double z){
 		this.posX = x;
@@ -69,19 +67,37 @@ public class Camera {
 	}
 	
 	SimpleMatrix getNdcMatrix(){
-		double uRechts = Math.tan(30) * n_close;
-		double uLinks = - uRechts;
-		
-		double urmul = uRechts - uLinks;
-		double vOben = Math.tan(30) * n_close;
-		double vUnten = - vOben;
-		double vrmvl = vOben - vUnten;
-		
+		double tangent = Math.tan(Math.toRadians(fov / 2));
+		double ur = tangent * n_close;
+		double ul = -ur;
+		double vt = ur / aspect_ratio;
+		double vb = -vt;
+			
 		double[][] M_a = {
-				{2 * n_close / urmul, 0 , 0 , 0 },
-				{0 , 2 * n_close / vrmvl, 0 , 0 },
-				{0 , 0 , - ((n_distant + n_close) / (n_distant - n_close)), -(2 * n_distant * n_close / (n_distant - n_close))},
-				{ 0 , 0 , -1 , 0 }
+				{
+					2 * n_close / (ur - ul),
+					0,
+					(ur + ul) / (ur - ul),
+					0
+				},
+				{
+					0,
+					2 * n_close / (vt - vb),
+					(vt + vb) / (vt - vb),
+					0
+				},
+				{
+					0,
+					0,
+					-((n_distant + n_close) / (n_distant - n_close)),
+					-(2 * n_distant * n_close / (n_distant - n_close))
+				},
+				{
+					0,
+					0,
+					-1,
+					0
+				}
 		};
 		
 		return new SimpleMatrix(M_a);
@@ -91,23 +107,7 @@ public class Camera {
 	
 	
 	public static void main(String[] args) {
-		double[][] d = {
-				{1,2,3},
-				{4,5,6},
-				{7,8,9}
-		};
-		SimpleMatrix m1 = new SimpleMatrix(d);
-		System.out.println(m1);
-		double[][] a = {{1},{2},{3}};
-		SimpleMatrix m2 = new SimpleMatrix(a);
-		SimpleMatrix m3 = m1.combine(0, 3, m2);
-		System.out.println(m3);
-		double[][] b = {{0,0,0,0}};
-		SimpleMatrix m4 = m3.combine(3, 0, new SimpleMatrix(b));
-		System.out.println(m4);
-		
-		
-		
+		System.out.println(Math.tan(Math.toRadians(30)));
 		
 	}
 	
