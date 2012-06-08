@@ -68,14 +68,8 @@ public class Uebung7_Die extends JFrame {
 		faces = Arrays.asList(new Face[]{f1, f2, k1, k2});
 		
 		// Define the Camera
-		cam = new Camera();
-		cam.setPosition(0, 0, 0);
-		cam.setDirection(0, 0, 1);
-		cam.setTop(0, 1, 0);
-		cam.n_close = 1;
-		cam.n_distant = 100;
-		cam.aspect_ratio = 1;
-		cam.fov = 60;
+		cam = new Uebung7_Camera();
+		
 	}
 
 	void render(Graphics g) {
