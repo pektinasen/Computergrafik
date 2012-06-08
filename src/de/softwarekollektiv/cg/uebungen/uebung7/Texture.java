@@ -3,6 +3,10 @@ package de.softwarekollektiv.cg.uebungen.uebung7;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
+/**
+ * A TExture applied to a face.
+ *
+ */
 public class Texture {
 
 	private BufferedImage bi;
@@ -13,6 +17,13 @@ public class Texture {
 		this.abc = abc;
 	}
 	
+	/**
+	 * 
+	 * @param lambda1
+	 * @param lambda2
+	 * @param lambda3
+	 * @return
+	 */
 	Color getColor(double lambda1, double lambda2, double lambda3) {
 		double sum = lambda1 + lambda2 + lambda3;
 		double vx = (lambda1 * abc[0][0] + lambda2 * abc[1][0] + lambda3 * abc[2][0]) / sum;

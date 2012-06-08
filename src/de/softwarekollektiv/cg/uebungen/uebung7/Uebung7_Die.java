@@ -17,9 +17,9 @@ import org.ejml.simple.SimpleMatrix;
 import de.softwarekollektiv.cg.gl.math.Coordinate2f;
 
 @SuppressWarnings("serial")
-public class Uebung7 extends JFrame {
+public class Uebung7_Die extends JFrame {
 
-	Uebung7() throws IOException {
+	Uebung7_Die() throws IOException {
 		setup();
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(400, 400);
@@ -62,8 +62,8 @@ public class Uebung7 extends JFrame {
 		Vector w2 = new Vector(0, 1, 0);
 		Vector w3 = new Vector(1, 0, 0);
 		Vector w4 = new Vector(1, 1, 0);
-		Face k1 = new Face(w1, w2, w4);
-		Face k2 = new Face(w1, w4, w3);
+		Face k1 = new Face(w1, w2, w4, tf1);
+		Face k2 = new Face(w1, w4, w3, tf2);
 		
 		faces = Arrays.asList(new Face[]{f1, f2, k1, k2});
 		
@@ -86,7 +86,7 @@ public class Uebung7 extends JFrame {
 				{ 0, 0, 0, 1 } });
 
 		// Translationsmatrix
-		double alpha = Math.toRadians(-65);
+		double alpha = Math.toRadians(-45);
 		SimpleMatrix transRotMatrix = new SimpleMatrix(new double[][] {
 				{ Math.cos(alpha), 0, Math.sin(alpha), 0 }, { 0, 1, 0, -25 },
 				{ -Math.sin(alpha), 0, Math.cos(alpha), 75 }, { 0, 0, 0, 1 } });
@@ -188,7 +188,7 @@ public class Uebung7 extends JFrame {
 	}
 
 	public static void main(String[] args) throws IOException {
-		new Uebung7();
+		new Uebung7_Die();
 	}
 
 }
