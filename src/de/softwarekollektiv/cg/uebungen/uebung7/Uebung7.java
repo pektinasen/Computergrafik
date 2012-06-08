@@ -80,17 +80,18 @@ public class Uebung7 extends JFrame {
 
 	void render(Graphics g) {
 		
-		// erstmal gross machen
+		// Scaling.
 		SimpleMatrix scaleMatrix = new SimpleMatrix(new double[][] {
 				{ 50, 0, 0, 0 }, { 0, 50, 0, 0 }, { 0, 0, 50, 0 },
 				{ 0, 0, 0, 1 } });
 
-		// Translationsmatrix
-		double alpha = Math.toRadians(-65);
+		// Translate/Rotate.
+		double alpha = Math.toRadians(-45);
 		SimpleMatrix transRotMatrix = new SimpleMatrix(new double[][] {
 				{ Math.cos(alpha), 0, Math.sin(alpha), 0 }, { 0, 1, 0, -25 },
 				{ -Math.sin(alpha), 0, Math.cos(alpha), 75 }, { 0, 0, 0, 1 } });
 
+		// Rendering pipeline.
 		SimpleMatrix uberMatrix = cam.getNdcMatrix().mult(cam.getAugMatrix())
 				.mult(transRotMatrix.mult(scaleMatrix));
 
@@ -123,7 +124,7 @@ public class Uebung7 extends JFrame {
 					}
 			}).invert();
 
-			// Sort:
+			// Sort.
 			Coordinate2f[] sorted = Arrays.copyOf(vertices, 3);
 			Arrays.sort(sorted, new Comparator<Coordinate2f>() {
 				public int compare(Coordinate2f arg0, Coordinate2f arg1) {
@@ -132,20 +133,20 @@ public class Uebung7 extends JFrame {
 				}
 			});
 
-			// Raster:
+			// Raster. 
 			double ot = sorted[0].getX() * (sorted[2].getY() - sorted[1].getY()) + 
 						sorted[2].getX() * (sorted[1].getY() - sorted[0].getY()) +
 						sorted[1].getX() * (sorted[0].getY() - sorted[2].getY());
 			int left = ot > 0 ? 1 : 2;
 			int right = 2 - left + 1;
 
+			// Simple scanline algorithm.
 			double[] dxl = new double[2];
 			double[] dxr = new double[2];
 			double dyl = sorted[left].getY() - sorted[0].getY();
 			dxl[0] = (sorted[left].getX() - sorted[0].getX()) / dyl;
 			double dyr = sorted[right].getY() - sorted[0].getY();
 			dxr[0] = (sorted[right].getX() - sorted[0].getX()) / dyr;
-			
 			if(left == 1) {
 				dyl = sorted[2].getY() - sorted[1].getY();
 				dxl[1] = (sorted[2].getX() - sorted[1].getX()) / dyl;
@@ -164,18 +165,20 @@ public class Uebung7 extends JFrame {
 			for(int ti = 0; ti < 2; ti++) {
 				for(; yi <= (int) Math.round(t[ti]); yi++) {
 					for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
+						// Calculate barycentric coordinates.
 						SimpleMatrix lambda = Mb.mult(new SimpleMatrix(new double[][] {
 								{
-									xi +0.5 - vertices[2].getX()
+									xi - vertices[2].getX()
 								},
 								{
-									yi+0.5 - vertices[2].getY()
+									yi - vertices[2].getY()
 								}
 						}));
 						double lambda1 = lambda.get(0, 0);
 						double lambda2 = lambda.get(1, 0);
 						double lambda3 = 1 - lambda1 - lambda2;
 						
+						// Get texture.
 						g.setColor(f.getColor(lambda1, lambda2, lambda3));
 						g.fillRect(xi, yi, 1, 1);				
 					}
