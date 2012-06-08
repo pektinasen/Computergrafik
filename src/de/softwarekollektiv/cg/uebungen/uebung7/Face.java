@@ -5,8 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /**
- * A Face consisting of three vertees in object coordinates.
- * @author Sascha
+ * A Face consisting of three vertices.
  *
  */
 public class Face implements Iterable<Vector>{

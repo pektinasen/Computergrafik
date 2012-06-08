@@ -17,9 +17,9 @@ import org.ejml.simple.SimpleMatrix;
 import de.softwarekollektiv.cg.gl.math.Coordinate2f;
 
 @SuppressWarnings("serial")
-public class Uebung7 extends JFrame {
+public class Uebung7_Die extends JFrame {
 
-	Uebung7() throws IOException {
+	Uebung7_Die() throws IOException {
 		setup();
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(400, 400);
@@ -62,20 +62,14 @@ public class Uebung7 extends JFrame {
 		Vector w2 = new Vector(0, 1, 0);
 		Vector w3 = new Vector(1, 0, 0);
 		Vector w4 = new Vector(1, 1, 0);
-		Face k1 = new Face(w1, w2, w4);
-		Face k2 = new Face(w1, w4, w3);
+		Face k1 = new Face(w1, w2, w4, tf1);
+		Face k2 = new Face(w1, w4, w3, tf2);
 		
 		faces = Arrays.asList(new Face[]{f1, f2, k1, k2});
 		
 		// Define the Camera
-		cam = new Camera();
-		cam.setPosition(0, 0, 0);
-		cam.setDirection(0, 0, 1);
-		cam.setTop(0, 1, 0);
-		cam.n_close = 1;
-		cam.n_distant = 100;
-		cam.aspect_ratio = 1;
-		cam.fov = 60;
+		cam = new Uebung7_Camera();
+		
 	}
 
 	void render(Graphics g) {
@@ -191,7 +185,7 @@ public class Uebung7 extends JFrame {
 	}
 
 	public static void main(String[] args) throws IOException {
-		new Uebung7();
+		new Uebung7_Die();
 	}
 
 }

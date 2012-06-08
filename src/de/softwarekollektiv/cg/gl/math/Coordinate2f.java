@@ -16,4 +16,10 @@ public final class Coordinate2f {
 	public double getY() {
 		return y;
 	}	
+	
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return "x: "+x +" y: "+y;
+	}
 }
