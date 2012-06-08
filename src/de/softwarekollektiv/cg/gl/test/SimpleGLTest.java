@@ -14,6 +14,7 @@ import de.softwarekollektiv.cg.gl.Material;
 import de.softwarekollektiv.cg.gl.Renderer;
 import de.softwarekollektiv.cg.gl.data.SimpleFace;
 import de.softwarekollektiv.cg.gl.data.SimpleGraphicObject;
+import de.softwarekollektiv.cg.gl.data.SimpleLight;
 import de.softwarekollektiv.cg.gl.data.SimpleMaterial;
 import de.softwarekollektiv.cg.gl.math.QuadMatrixf;
 import de.softwarekollektiv.cg.gl.math.Vector3f;
@@ -62,6 +63,9 @@ public class SimpleGLTest extends JFrame {
 		scene = new GLScene();
 		scene.setCamera(cam);
 		scene.addGraphicObject(cube, cubem);
+		scene.setUseLighting(true);
+		scene.setAmbientLight(0.5, 0.5, 0.2);
+//		scene.addLight(new SimpleLight(0, 10, 15, 0.9, 0.9, 0.9));
 	}
 	
 	private GraphicObject setupCube() {

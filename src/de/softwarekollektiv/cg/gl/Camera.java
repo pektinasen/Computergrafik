@@ -12,6 +12,7 @@ import de.softwarekollektiv.cg.gl.math.Vector3f;
 public final class Camera {
 
 	private final QuadMatrixf m;
+	private final Vector3f position;
 
 	/**
 	 * Helper function to simplify camera configuration.
@@ -109,9 +110,14 @@ public final class Camera {
 		});
 		
 		this.m = M_ENDC.mult(M_VE);
+		this.position = eye;
 	}
 
 	final QuadMatrixf getNDCMatrix() {
 		return m;
+	}
+
+	public Vector3f getPosition() {
+		return position;
 	}
 }

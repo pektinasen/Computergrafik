@@ -1,11 +1,11 @@
 package de.softwarekollektiv.cg.gl.data;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.softwarekollektiv.cg.gl.Face;
 import de.softwarekollektiv.cg.gl.GraphicObject;
+import de.softwarekollektiv.cg.gl.math.Vector3f;
 
 /**
  * SimpleGraphicObject.
@@ -35,10 +35,10 @@ public class SimpleGraphicObject implements GraphicObject {
 	}
 
 	@Override
-	public Color getColor(int face, double l1, double l2, double l3) {
+	public Vector3f getColor(int face, double l1, double l2, double l3) {
 		if(l1 < 0 || l2 < 0 || l3 < 0)
-			return Color.BLACK;
-		return new Color((float) l1, (float) l2, (float) l3);
+			return new Vector3f(0, 0, 0);
+		return new Vector3f(1.0, 1.0, 1.0);
 	}
 
 }

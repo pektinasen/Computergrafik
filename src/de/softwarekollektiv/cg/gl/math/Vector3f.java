@@ -11,6 +11,12 @@ public final class Vector3f {
 		this.z = z;
 	}
 	
+	public final Vector3f add(final Vector3f v) {
+		assert(v != null);
+		
+		return new Vector3f(this.x + v.x, this.y + v.y, this.z + v.z);
+	}
+	
 	public final Vector3f subtract(final Vector3f v) {
 		assert(v != null);
 		
@@ -47,5 +53,18 @@ public final class Vector3f {
 	
 	public double getZ() {
 		return z;
+	}
+
+	public double length() {
+		return Math.sqrt(x * x + y * y + z * z);
+	}
+	
+	@Override
+	public String toString() {
+		return "(" + x + ", " + y + ", " + z + ")";
+	}
+	
+	public Vector3f scale(double s) {
+		return new Vector3f(x * s, y * s, z * s);
 	}
 }
