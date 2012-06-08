@@ -31,17 +31,19 @@ public class SimpleGLTest extends JFrame {
 	private GLScene scene;
 	
 	SimpleGLTest() throws IOException {
+		final int width = 400;
+		final int height = 400;
 		setup();
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setSize(400, 400);
+		this.setSize(width, height);
 		JPanel canvas = new JPanel() {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				Renderer.render(g, scene);
+				Renderer.render(g, width, height, scene);
 			}
 		};
-		canvas.setSize(400, 400);
+		canvas.setSize(width, height);
 		this.add(canvas);
 		this.setVisible(true);
 	
@@ -82,12 +84,22 @@ public class SimpleGLTest extends JFrame {
 		Face k1 = new SimpleFace(w1, w2, w4, m);
 		Face k2 = new SimpleFace(w1, w4, w3, m);
 		
+		// Define the cube: Face C
+		Vector3f u1 = new Vector3f(0, 0, 0);
+		Vector3f u2 = new Vector3f(0, 0, 1);
+		Vector3f u3 = new Vector3f(1, 0, 0);
+		Vector3f u4 = new Vector3f(1, 0, 1);
+		Face h1 = new SimpleFace(u1, u2, u4, m);
+		Face h2 = new SimpleFace(u1, u4, u3, m);
+		
 		// Define the GraphicObject.
 		SimpleGraphicObject cube = new SimpleGraphicObject();
 		cube.addFace(f1);
 		cube.addFace(f2);
 		cube.addFace(k1);
 		cube.addFace(k2);
+		cube.addFace(h1);
+		cube.addFace(h2);
 		
 		return cube;
 	}
