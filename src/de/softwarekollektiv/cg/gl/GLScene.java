@@ -3,8 +3,7 @@ package de.softwarekollektiv.cg.gl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ejml.simple.SimpleMatrix;
-
+import de.softwarekollektiv.cg.gl.math.QuadMatrixf;
 import de.softwarekollektiv.cg.gl.math.Vector3f;
 
 public class GLScene {
@@ -14,7 +13,7 @@ public class GLScene {
 	private boolean use_lightning;
 	
 	private final List<GraphicObject> objs = new ArrayList<GraphicObject>();
-	private final List<SimpleMatrix> transm = new ArrayList<SimpleMatrix>();
+	private final List<QuadMatrixf> transm = new ArrayList<QuadMatrixf>();
 	private final List<Light> lights = new ArrayList<Light>();
 	
 	public GLScene() {
@@ -32,7 +31,7 @@ public class GLScene {
 		this.cam = cam;
 	}
 	
-	public void addGraphicObject(final GraphicObject go, final SimpleMatrix t) {
+	public void addGraphicObject(final GraphicObject go, final QuadMatrixf t) {
 		assert(go != null && t != null);
 		
 		objs.add(go);
@@ -73,7 +72,7 @@ public class GLScene {
 		return objs.get(idx);
 	}
 	
-	final SimpleMatrix getTransformationMatrix(final int idx) {
+	final QuadMatrixf getTransformationMatrix(final int idx) {
 		assert(idx > 0 && idx < objs.size());
 		
 		return transm.get(idx);

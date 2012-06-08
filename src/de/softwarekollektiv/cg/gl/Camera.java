@@ -1,7 +1,6 @@
 package de.softwarekollektiv.cg.gl;
 
-import org.ejml.simple.SimpleMatrix;
-
+import de.softwarekollektiv.cg.gl.math.QuadMatrixf;
 import de.softwarekollektiv.cg.gl.math.Vector3f;
 
 /**
@@ -12,7 +11,7 @@ import de.softwarekollektiv.cg.gl.math.Vector3f;
  */
 public final class Camera {
 
-	private final SimpleMatrix m;
+	private final QuadMatrixf m;
 
 	/**
 	 * Helper function to simplify camera configuration.
@@ -60,23 +59,21 @@ public final class Camera {
 	public Camera(double x, double y, double z, double dirx, double diry,
 			double dirz, double topx, double topy, double topz,
 			double aspect_ratio, double fovx, double n_close, double n_distant) {
-
+		
 		// View to eye coordinates.
 		Vector3f n = new Vector3f(-dirx, -diry, -dirz);
-		
 		// TODO Don't expect top{x,y,z} to be orthogonal to {x,y,z}!
 		Vector3f v = new Vector3f(topx, topy, topz);
 		Vector3f u = v.vectorProduct(n);
-
-		SimpleMatrix M_uvn = new SimpleMatrix(new double[][] {
+		Vector3f eye = new Vector3f(x, y, z); 
+		
+		QuadMatrixf M_uvn = new QuadMatrixf(new double[][] {
 				u.toArray(), v.toArray(), n.toArray() 
-		});
-		SimpleMatrix M_eye = new SimpleMatrix(new double[][] {
-				{ x }, { y }, { z }
-		});
-		SimpleMatrix M_VE = M_uvn.combine(0, 3, M_uvn.negative().mult(M_eye)).combine(3, 0,
-				new SimpleMatrix(1, 4));
-		M_VE.set(3, 3, 1);
+		});		
+		QuadMatrixf M_VE = new QuadMatrixf(4);
+		M_VE.set(0, 0, M_uvn);
+		M_VE.set(0, 3, M_uvn.negative().mult(eye));
+		M_VE.set(3, 3, 1.0);
 
 		// Eye to NDC coordinates.
 		double tangent = Math.tan(Math.toRadians(fovx / 2));
@@ -84,7 +81,7 @@ public final class Camera {
 		double ul = -ur;
 		double vt = ur / aspect_ratio;
 		double vb = -vt;
-		SimpleMatrix M_ENDC = new SimpleMatrix(new double[][] {
+		QuadMatrixf M_ENDC = new QuadMatrixf(new double[][] {
 				{
 					2 * n_close / (ur - ul),
 					0,
@@ -114,7 +111,7 @@ public final class Camera {
 		this.m = M_ENDC.mult(M_VE);
 	}
 
-	final SimpleMatrix getNDCMatrix() {
+	final QuadMatrixf getNDCMatrix() {
 		return m;
 	}
 }

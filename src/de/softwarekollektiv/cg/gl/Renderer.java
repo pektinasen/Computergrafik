@@ -4,43 +4,42 @@ import java.awt.Graphics;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.ejml.simple.SimpleMatrix;
-
 import de.softwarekollektiv.cg.gl.Face;
 import de.softwarekollektiv.cg.gl.math.Coordinate2f;
-import de.softwarekollektiv.cg.gl.math.Vector3f;
+import de.softwarekollektiv.cg.gl.math.QuadMatrixf;
+import de.softwarekollektiv.cg.gl.math.Vector4f;
 
 public class Renderer {
 	public static void render(Graphics g, GLScene scene) {
 		assert(g != null && scene != null);
 		
-		final SimpleMatrix ndcMatrix = scene.getCamera().getNDCMatrix();
+		final QuadMatrixf ndcMatrix = scene.getCamera().getNDCMatrix();
 		
 		for(int gidx = 0; gidx < scene.getNumObjects(); gidx++) {
 			GraphicObject obj = scene.getGraphicObject(gidx);
-			SimpleMatrix m = ndcMatrix.mult(scene.getTransformationMatrix(gidx));
+			QuadMatrixf m = ndcMatrix.mult(scene.getTransformationMatrix(gidx));
 			
 			for(int faceId = 0; faceId < obj.size(); faceId++) {
 				Face f = obj.getFace(faceId);
 				
 				Coordinate2f[] vertices = new Coordinate2f[3];
 				for(int i = 0; i < 3; i++) {
-					Vector3f v = f.getVertex(i);
+					Vector4f vhomogen = f.getVertex(i).getHomogeneousVector4f();
 					
 					// Transform vertex to NDC.
-					SimpleMatrix ndcVector = m.mult(v.getHomogeneousMatrix());
+					Vector4f ndcVector = m.mult(vhomogen);
 					
 					// Normalize homogeneous component.
-					ndcVector = ndcVector.divide(ndcVector.get(3, 0));
+					ndcVector = ndcVector.normalizeHomogeneous();
 					
 					// View port.
-					double ndcx = ndcVector.get(0, 0);
-					double ndcy = ndcVector.get(1, 0);
+					double ndcx = ndcVector.getX();
+					double ndcy = ndcVector.getY();
 					vertices[i] = new Coordinate2f(((ndcx + 1) * (400 / 2)), ((ndcy + 1) * (400 / 2)));
 				}
 				
 				// Prepare for barycentric coordinates.
-				SimpleMatrix Mb = new SimpleMatrix(new double[][] {
+				QuadMatrixf Mb = new QuadMatrixf(new double[][] {
 						{
 							vertices[0].getX() - vertices[2].getX(),
 							vertices[1].getX() - vertices[2].getX(),
@@ -98,16 +97,9 @@ public class Renderer {
 						for(int xi = (int) Math.round(xl); xi <= (int) Math.round(xr); xi++) {
 							
 							// Calculate barycentric coordinates.
-							SimpleMatrix lambda = Mb.mult(new SimpleMatrix(new double[][] {
-									{
-										xi - vertices[2].getX()
-									},
-									{
-										yi - vertices[2].getY()
-									}
-							}));
-							double lambda1 = lambda.get(0, 0);
-							double lambda2 = lambda.get(1, 0);
+							Coordinate2f lambda = Mb.mult(new Coordinate2f(xi - vertices[2].getX(), yi - vertices[2].getY()));
+							double lambda1 = lambda.getX();
+							double lambda2 = lambda.getY();
 							double lambda3 = 1 - lambda1 - lambda2;
 							
 							// Get color of point.

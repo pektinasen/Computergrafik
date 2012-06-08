@@ -1,7 +1,5 @@
 package de.softwarekollektiv.cg.gl.math;
 
-import org.ejml.simple.SimpleMatrix;
-
 public final class Vector3f {
 	private final double x;
 	private final double y;
@@ -26,8 +24,8 @@ public final class Vector3f {
 				* v.z, this.x * v.y - this.y * v.x);
 	}
 
-	public final SimpleMatrix getHomogeneousMatrix() {
-		return new SimpleMatrix(new double[][] { { x }, { y }, { z }, { 1 } });
+	public final Vector4f getHomogeneousVector4f() {
+		return new Vector4f(x, y, z, 1);
 	}
 
 	public final double[] toArray() {
@@ -37,5 +35,17 @@ public final class Vector3f {
 	public final Vector3f normalize() {
 		double len = Math.sqrt(x * x + y * y + z * z);
 		return new Vector3f(x / len, y / len, z / len);
+	}
+
+	public double getX() {
+		return x;
+	}
+	
+	public double getY() {
+		return y;
+	}
+	
+	public double getZ() {
+		return z;
 	}
 }

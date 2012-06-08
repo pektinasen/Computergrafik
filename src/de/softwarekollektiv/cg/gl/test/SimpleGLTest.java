@@ -6,8 +6,6 @@ import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import org.ejml.simple.SimpleMatrix;
-
 import de.softwarekollektiv.cg.gl.Camera;
 import de.softwarekollektiv.cg.gl.Face;
 import de.softwarekollektiv.cg.gl.GLScene;
@@ -17,6 +15,7 @@ import de.softwarekollektiv.cg.gl.Renderer;
 import de.softwarekollektiv.cg.gl.data.SimpleFace;
 import de.softwarekollektiv.cg.gl.data.SimpleGraphicObject;
 import de.softwarekollektiv.cg.gl.data.SimpleMaterial;
+import de.softwarekollektiv.cg.gl.math.QuadMatrixf;
 import de.softwarekollektiv.cg.gl.math.Vector3f;
 
 /**
@@ -52,7 +51,7 @@ public class SimpleGLTest extends JFrame {
 	void setup() throws IOException {	
 		// Define the cube.
 		GraphicObject cube = setupCube();
-		SimpleMatrix cubem = setupCubeTransf();
+		QuadMatrixf cubem = setupCubeTransf();
 	
 		// Define the Camera
 		Camera cam = new Camera(0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 60, 1, 100);
@@ -93,14 +92,14 @@ public class SimpleGLTest extends JFrame {
 		return cube;
 	}
 	
-	private SimpleMatrix setupCubeTransf() {
-		SimpleMatrix scaleMatrix = new SimpleMatrix(new double[][] {
+	private QuadMatrixf setupCubeTransf() {
+		QuadMatrixf scaleMatrix = new QuadMatrixf(new double[][] {
 				{ 50, 0, 0, 0 }, { 0, 50, 0, 0 }, { 0, 0, 50, 0 },
 				{ 0, 0, 0, 1 } });
 
 		// Translate/Rotate.
 		double alpha = Math.toRadians(-45);
-		SimpleMatrix transRotMatrix = new SimpleMatrix(new double[][] {
+		QuadMatrixf transRotMatrix = new QuadMatrixf(new double[][] {
 				{ Math.cos(alpha), 0, Math.sin(alpha), 0 }, { 0, 1, 0, -25 },
 				{ -Math.sin(alpha), 0, Math.cos(alpha), 75 }, { 0, 0, 0, 1 } });
 		
