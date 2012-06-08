@@ -14,8 +14,6 @@ import javax.swing.JPanel;
 
 import org.ejml.simple.SimpleMatrix;
 
-import de.softwarekollektiv.cg.gl.math.Coordinate2f;
-
 @SuppressWarnings("serial")
 public class Uebung7 extends JFrame {
 
