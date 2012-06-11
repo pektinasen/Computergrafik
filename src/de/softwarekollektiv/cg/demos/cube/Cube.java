@@ -2,6 +2,7 @@ package de.softwarekollektiv.cg.demos.cube;
 
 import java.awt.BorderLayout;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -17,7 +18,7 @@ import javax.swing.JFrame;
 
 import com.jogamp.opengl.util.Animator;
 
-public class Cube implements GLEventListener, MouseMotionListener {
+public class Cube implements GLEventListener, MouseListener, MouseMotionListener {
 
 	public static void main(String[] args) {
 		new Cube(300);
@@ -29,16 +30,16 @@ public class Cube implements GLEventListener, MouseMotionListener {
 	private final float[] colorRed = { 1.0f, 0.0f, 0.0f, 1.0f };
 	private final float[] colorBlue = { 0.0f, 0.0f, 1.0f, 1.0f };
 	private final float[] colorYellow = { 1.0f, 1.0f, 0.0f, 1.0f };
-	private final float[] colorLightYellow = { .5f, .5f, 0.0f, 1.0f };
 	private final float[] colorGreen = { 0.0f, 1.0f, 0.0f, 1.0f };
 	private final float[] colorPurple = { 0.8f, 0.0f, 0.8f, 1.0f };
 
 	private final int SIZE;
 
-	private int prevx = -1;
-	private float xrot = 0;
-	private int prevy = -1;
-	private float yrot = 0;
+	private int[] prevx = {-1, -1};
+	private float[] xrot = {0, 0};
+	private int[] prevy = {-1, -1};
+	private float[] yrot = {0, 0};
+	private int rotator = -1;
 
 	private final GLCanvas canvas;
 
@@ -46,6 +47,7 @@ public class Cube implements GLEventListener, MouseMotionListener {
 		SIZE = size;
 		canvas = getGLCanvas();
 		canvas.addGLEventListener(this);
+		canvas.addMouseListener(this);
 		canvas.addMouseMotionListener(this);
 		Animator anim = new Animator(canvas);
 		addCanvasToFrame(canvas, anim);
@@ -85,7 +87,7 @@ public class Cube implements GLEventListener, MouseMotionListener {
 		gl.glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		drawSquareFace(gl);
 
-		setMaterial(gl, colorLightYellow);
+		setMaterial(gl, colorGreen);
 		gl.glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		drawSquareFace(gl);
 
@@ -104,14 +106,27 @@ public class Cube implements GLEventListener, MouseMotionListener {
 
 	private void drawSquareFace(GL2 gl) {
 		gl.glBegin(GL2.GL_QUADS);
-		gl.glTexCoord2f(0, 0);
 		gl.glVertex3f(-SIZE / 2, -SIZE / 2, SIZE / 2);
-		gl.glTexCoord2f(0, 1);
 		gl.glVertex3f(-SIZE / 2, SIZE / 2, SIZE / 2);
-		gl.glTexCoord2f(1, 1);
 		gl.glVertex3f(SIZE / 2, SIZE / 2, SIZE / 2);
-		gl.glTexCoord2f(1, 0);
 		gl.glVertex3f(SIZE / 2, -SIZE / 2, SIZE / 2);
+		gl.glEnd();
+	}
+
+	private void drawCenteredPyramid(GL2 gl) {
+		gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT, new float[] {0.2f, 0.4f, 0.7f}, 0);
+		gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE, new float[] {0.4f, 0.3f, 0.8f}, 0);
+		gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[] {0.6f, 0.5f, 1.0f}, 0);
+		gl.glMateriali(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 12);
+		gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_EMISSION, colorBlack, 0);
+		
+		gl.glBegin(GL2.GL_TRIANGLE_STRIP);
+		gl.glVertex3f(0, SIZE / 4, -SIZE / 4);
+		gl.glVertex3f(SIZE / 4, -SIZE / 4, -SIZE / 4);
+		gl.glVertex3f(-SIZE / 4, -SIZE / 4, -SIZE / 4);
+		gl.glVertex3f(0, 0, SIZE / 4);
+		gl.glVertex3f(0, SIZE / 4, -SIZE / 4);
+		gl.glVertex3f(SIZE / 4, -SIZE / 4, -SIZE / 4);
 		gl.glEnd();
 	}
 
@@ -122,9 +137,9 @@ public class Cube implements GLEventListener, MouseMotionListener {
 	@Override
 	public void init(GLAutoDrawable drawable) {
 		GL2 gl = drawable.getGL().getGL2();
-		
+
 		gl.glEnable(GL.GL_DEPTH_TEST);
-		
+
 		// First Switch the lights on.
 		gl.glEnable(GL2.GL_LIGHTING);
 		gl.glDisable(GL2.GL_LIGHT0);
@@ -142,7 +157,7 @@ public class Cube implements GLEventListener, MouseMotionListener {
 		// Light 1.
 		//
 		// Position and direction (spotlight)
-		float posLight1[] = { 1.0f, 1.f, 1.f, 0.0f };
+		float posLight1[] = { 3.0f, 8.0f, 1.0f, 0.0f };
 		float spotDirection[] = { -1.0f, -1.0f, 0.f };
 		gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_POSITION, posLight1, 0);
 		gl.glLightf(GL2.GL_LIGHT1, GL2.GL_SPOT_CUTOFF, 60.0f);
@@ -164,9 +179,15 @@ public class Cube implements GLEventListener, MouseMotionListener {
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
 		gl.glMatrixMode(GL2.GL_MODELVIEW);
+		
 		gl.glLoadIdentity();
-		gl.glRotatef(xrot, 0, 1, 0);
-		gl.glRotatef(yrot, 1, 0, 0);
+		gl.glRotatef(xrot[1], 0, 1, 0);
+		gl.glRotatef(yrot[1], 1, 0, 0);
+		drawCenteredPyramid(gl);
+
+		gl.glLoadIdentity();
+		gl.glRotatef(xrot[0], 0, 1, 0);
+		gl.glRotatef(yrot[0], 1, 0, 0);
 		drawCenteredCube(gl);
 	}
 
@@ -180,27 +201,65 @@ public class Cube implements GLEventListener, MouseMotionListener {
 		gl.glOrtho(-width, width, -height, height, -SIZE, SIZE);
 	}
 
-	// #######################
-	// MouseListener methods
-	// #######################
+	// #############################
+	// Mouse[Motion]Listener methods
+	// #############################
 
 	@Override
 	public void mouseDragged(MouseEvent arg0) {
-		int x = arg0.getX();
-		int y = arg0.getY();
-		if (prevx != -1 && (Math.abs(prevx - x) < 10)) {
-			xrot -= prevx - x;
+		// SOMEHOW, arg0.getButton() always
+		// returns 0, thus we needed to implement
+		// MouseListener as well.
+		
+		if(rotator != -1) {
+			int x = arg0.getX();
+			int y = arg0.getY();
+			if (prevx[rotator] != -1 && (Math.abs(prevx[rotator] - x) < 10)) {
+				xrot[rotator] -= prevx[rotator] - x;
+			}
+			if (prevy[rotator] != -1 && (Math.abs(prevy[rotator] - y) < 10)) {
+				yrot[rotator] -= prevy[rotator] - y;
+			}
+	
+			canvas.display();
+			prevx[rotator] = x;
+			prevy[rotator] = y;
 		}
-		if (prevy != -1 && (Math.abs(prevy - y) < 10)) {
-			yrot -= prevy - y;
-		}
-
-		canvas.display();
-		prevx = x;
-		prevy = y;
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent arg0) {
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent arg0) {
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+	}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+		switch(arg0.getButton()) {
+		case MouseEvent.BUTTON1:
+			rotator = 0;
+			break;
+		case MouseEvent.BUTTON3:
+			rotator = 1;
+			break;
+		default:
+			rotator = -1;
+			break;
+		}
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
+		rotator = -1;
 	}
 }
