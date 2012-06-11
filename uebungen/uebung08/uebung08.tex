@@ -1,0 +1,43 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}  
+\usepackage[T1]{fontenc}         
+\usepackage[ngerman]{babel}
+
+\usepackage{graphicx} % For includegraphics.
+\usepackage{listings} % For code listings.
+\usepackage{algorithmic}
+
+\usepackage{amsmath} % For easier usage of matrices and stuff
+\usepackage{amsfonts}
+
+\usepackage[
+pdftitle={Computergrafik: Übung 08},
+pdfsubject={Abgabe zu Übung 08},
+pdfauthor={Sascha Gennrich (4301150), Malte Rohde (4287463)}
+]{hyperref}
+
+\title{Computergrafik: Übung 08}
+\author{Sascha Gennrich (4301150) \and Malte Rohde (4287463)}
+\date{\today{}}
+
+\begin{document}
+\maketitle
+
+\section*{Aufgabe 29}
+Trotz längerer Grübelei kommen wir lediglich zu einem linear-komplexen Lösungsverfahren, welches wie folgt definiert ist. \emph{Region} bezeichnet hier eine wie auch immer geartete konstruierte Figur, \emph{rectangle} ein erzeugtes Rechteck.
+\begin{algorithmic}
+\STATE{$W \leftarrow$ create rectangle from whole board} \COMMENT{1 operation.}
+\STATE{Paint $W$ in white.} \COMMENT{1 operation.}
+\STATE{$C \leftarrow$ empty region} \COMMENT{Variable initialization, we do not treat this as an operation.}
+\STATE{$R \leftarrow$ empty region}
+\FOR[all odd numbers, $\frac{n}{2}$ iterations.]{$i = 1$ \texttt{to} $n - 1$ \texttt{step} $2$}
+\STATE{$c \leftarrow$ create rectangle from column $i$} \COMMENT{1 op.}
+\STATE{$C \leftarrow C \cup c$} \COMMENT{1 op.}
+\STATE{$r \leftarrow$ create rectangle from row $i$}  \COMMENT{1 op.}
+\STATE{$R \leftarrow R \cup r$} \COMMENT{1 op.}
+\ENDFOR
+\STATE{Paint $C \cap R$ in black.} \COMMENT{2 ops.}
+\STATE{Do the same for the even rows/columns.} \COMMENT{Again $\frac{4n}{2} + 2$ operations.}
+\end{algorithmic}
+Letztendlich erhalten wir eine Gesamtanzahl von Operation von $S(n) = 2 + 2 \cdot \left(\frac{4n}{2} + 2\right) = 4n + 6$. Das asymptotische Wachstum dieser Funktion ist linear beschränkt, d.h. $S \in \Theta(n)$.
+\end{document}
