@@ -36,8 +36,8 @@ public class SimpleGraphicObject implements GraphicObject {
 
 	@Override
 	public Vector3f getColor(int face, double l1, double l2, double l3) {
-		if(l1 < 0 || l2 < 0 || l3 < 0)
-			return new Vector3f(0, 0, 0);
+		assert(l1 >= 0 && l2 >= 0 && l3 >= 0 && (l1 + l2 + l3) == 1);
+			
 		return new Vector3f(1.0, 1.0, 1.0);
 	}
 

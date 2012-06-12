@@ -1,5 +1,6 @@
 package de.softwarekollektiv.cg.gl.test;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.io.IOException;
 
@@ -41,6 +42,8 @@ public class SimpleGLTest extends JFrame {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
+				g.setColor(Color.cyan);
+				g.fillRect(0, 0, width, height);
 				Renderer.render(g, width, height, scene);
 			}
 		};
@@ -65,7 +68,7 @@ public class SimpleGLTest extends JFrame {
 		scene.addGraphicObject(cube, cubem);
 		scene.setUseLighting(true);
 		scene.setAmbientLight(0.5, 0.5, 0.2);
-//		scene.addLight(new SimpleLight(0, 10, 15, 0.9, 0.9, 0.9));
+		scene.addLight(new SimpleLight(0, 10, 15, 0.9, 0.9, 0.9));
 	}
 	
 	private GraphicObject setupCube() {
