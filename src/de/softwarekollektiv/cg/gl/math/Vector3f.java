@@ -22,14 +22,24 @@ public final class Vector3f {
 		
 		return new Vector3f(this.x - v.x, this.y - v.y, this.z - v.z);
 	}
-
+	
+	public final double scalarProduct(final Vector3f v) {
+		assert(v != null);
+		
+		return this.x * v.x + this.y * v.y + this.z * v.z;
+	}
+	
 	public final Vector3f vectorProduct(final Vector3f v) {
 		assert(v != null);
 		
 		return new Vector3f(this.y * v.z - this.z * v.y, this.z * v.x - this.x
 				* v.z, this.x * v.y - this.y * v.x);
 	}
-
+	
+	public final Vector3f scale(double s) {
+		return new Vector3f(x * s, y * s, z * s);
+	}
+	
 	public final Vector4f getHomogeneousVector4f() {
 		return new Vector4f(x, y, z, 1);
 	}
@@ -62,9 +72,5 @@ public final class Vector3f {
 	@Override
 	public String toString() {
 		return "(" + x + ", " + y + ", " + z + ")";
-	}
-	
-	public Vector3f scale(double s) {
-		return new Vector3f(x * s, y * s, z * s);
 	}
 }

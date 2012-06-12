@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import de.softwarekollektiv.cg.gl.Face;
-import de.softwarekollektiv.cg.gl.math.Coordinate2f;
 import de.softwarekollektiv.cg.gl.math.QuadMatrixf;
 import de.softwarekollektiv.cg.gl.math.Vector3f;
 import de.softwarekollektiv.cg.gl.math.Vector4f;
@@ -63,11 +62,7 @@ public class Renderer {
 			GraphicObject obj, int faceId, ZBuffer zbuf) {
 		
 		// Prepare for barycentric coordinates.
-		QuadMatrixf Mb = new QuadMatrixf(new double[][] {
-				{ vertices[0].getX() - vertices[2].getX(),
-						vertices[1].getX() - vertices[2].getX(), },
-				{ vertices[0].getY() - vertices[2].getY(),
-						vertices[1].getY() - vertices[2].getY(), } }).invert();
+		Vector3f Nview = vertices[2].subtract(vertices[0]).vectorProduct(vertices[1].subtract(vertices[0])).normalize();
 
 		// Sort.
 		Vector3f[] sorted = Arrays.copyOf(vertices, 3);
@@ -101,7 +96,7 @@ public class Renderer {
 			
 		while (yi <= sorted[1].getY()) {
 
-			rasterLine(xl, xr, yi, Mb, vertices, intensities, obj, faceId, zbuf);
+			rasterLine(xl, xr, yi, vertices, intensities, Nview, obj, faceId, zbuf);
 
 			yi++;
 			xl += dxl;
@@ -126,7 +121,7 @@ public class Renderer {
 		
 		while(yi <= sorted[2].getY()) {
 
-			rasterLine(xl, xr, yi, Mb, vertices, intensities, obj, faceId, zbuf);
+			rasterLine(xl, xr, yi, vertices, intensities, Nview, obj, faceId, zbuf);
 
 			yi++;
 			xl += dxl;
@@ -135,19 +130,28 @@ public class Renderer {
 
 	}
 
-	private static void rasterLine(double xl, double xr, int yi, QuadMatrixf Mb, 
-			Vector3f[] vertices, Vector3f[] intensities, GraphicObject obj,
+	private static void rasterLine(double xl, double xr, int yi, 
+			Vector3f[] vertices, Vector3f[] intensities, Vector3f Nview, GraphicObject obj,
 			int faceId, ZBuffer zbuf) {
 		int xi = (int) Math.ceil(xl);
 		while(xi <= xr) {
+			Vector3f A = vertices[0];			
+			Vector3f B = vertices[1];
+			Vector3f C = vertices[2];	
+			
 			// Calculate barycentric coordinates.
 			// We always use the center of a pixel.
-			double xc = xi - 0.5;
-			double yc = yi - 0.5;
-			Coordinate2f lambda = Mb.mult(new Coordinate2f(xc - vertices[2].getX(),
-					yc - vertices[2].getY()));
-			double lambda1 = lambda.getX();
-			double lambda2 = lambda.getY();
+			double px = xi - 0.5;
+			double py = yi - 0.5;			
+			double pz = (((A.getX() - px) * Nview.getX() + (A.getY() - py) * Nview.getY()) / Nview.getZ()) + A.getZ();
+			Vector3f P = new Vector3f(px, py, pz);
+					
+			double areaABC = B.subtract(A).vectorProduct(C.subtract(A)).length();
+			double areaPBC = B.subtract(P).vectorProduct(C.subtract(P)).length();
+			double areaPCA = C.subtract(P).vectorProduct(A.subtract(P)).length();
+			
+			double lambda1 = areaPBC / areaABC;
+			double lambda2 = areaPCA / areaABC;
 			double lambda3 = 1 - lambda1 - lambda2;
 			
 			// Only draw points in triangle.
@@ -162,16 +166,9 @@ public class Renderer {
 						col.getY() * (lambda1 * intensities[0].getY() + lambda2 * intensities[1].getY() + lambda3 * intensities[2].getY()), 
 						col.getZ() * (lambda1 * intensities[0].getZ() + lambda2 * intensities[1].getZ() + lambda3 * intensities[2].getZ())
 						);
-
-				// TODO remove
-				if((col.getX() < 0 || col.getX() > 1) ||
-				  (col.getY() < 0 || col.getY() > 1) ||
-				  (col.getZ() < 0 || col.getZ() > 1))
-					col = new Vector3f(0, 0, 0);
 	
 				// Draw into zBuffer.
-				double z = lambda1 * vertices[0].getZ() + lambda2 * vertices[1].getZ() + lambda3 * vertices[2].getZ();
-				zbuf.setPixel(xi, yi, z, col);
+				zbuf.setPixel(xi, yi, pz, col);
 			}
 			
 			xi++;

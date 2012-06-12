@@ -33,8 +33,8 @@ public class SimpleGLTest extends JFrame {
 	private GLScene scene;
 	
 	SimpleGLTest() throws IOException {
-		final int width = 400;
-		final int height = 400;
+		final int width = 800;
+		final int height = 600;
 		setup();
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(width, height);
@@ -68,7 +68,8 @@ public class SimpleGLTest extends JFrame {
 		scene.addGraphicObject(cube, cubem);
 		scene.setUseLighting(true);
 		scene.setAmbientLight(0.5, 0.5, 0.2);
-		scene.addLight(new SimpleLight(0, 10, 15, 0.9, 0.9, 0.9));
+		scene.addLight(new SimpleLight(75, 95, 15, 0.9, 0.9, 0.9));
+		scene.addLight(new SimpleLight(-20, -30, 55, 0, 0.9, 0.9));
 	}
 	
 	private GraphicObject setupCube() {
