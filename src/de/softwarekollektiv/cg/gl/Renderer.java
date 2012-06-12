@@ -10,11 +10,11 @@ import de.softwarekollektiv.cg.gl.math.Vector3f;
 import de.softwarekollektiv.cg.gl.math.Vector4f;
 
 public class Renderer {
-	public static void render(Graphics g, int width, int height, GLScene scene) {
+	public static void render(Graphics g, int width, int height, GLScene scene, Vector3f bgcol) {
 		assert (g != null && scene != null);
 
 		final QuadMatrixf ndcMatrix = scene.getCamera().getNDCMatrix();
-		final ZBuffer zbuf = new ZBuffer(width, height);
+		final ZBuffer zbuf = new ZBuffer(width, height, bgcol);
 
 		for (int gidx = 0; gidx < scene.getNumObjects(); gidx++) {
 			GraphicObject obj = scene.getGraphicObject(gidx);
@@ -109,15 +109,12 @@ public class Renderer {
 			dxl = (sorted[2].getX() - sorted[1].getX()) / dyl;
 			
 			xl = sorted[1].getX() + (yi - sorted[1].getY()) * dxl;
-			xr += dxr;
 		} else {
 			dyr = sorted[2].getY() - sorted[1].getY();
 			dxr = (sorted[2].getX() - sorted[1].getX()) / dyr;
 			
-			xl += dxl;
 			xr = sorted[1].getX() + (yi - sorted[1].getY()) * dxr;
 		}
-		yi++;
 		
 		while(yi <= sorted[2].getY()) {
 

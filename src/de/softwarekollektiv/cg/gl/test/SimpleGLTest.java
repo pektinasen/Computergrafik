@@ -1,6 +1,5 @@
 package de.softwarekollektiv.cg.gl.test;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.io.IOException;
 
@@ -42,9 +41,7 @@ public class SimpleGLTest extends JFrame {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				g.setColor(Color.cyan);
-				g.fillRect(0, 0, width, height);
-				Renderer.render(g, width, height, scene);
+				Renderer.render(g, width, height, scene, new Vector3f(0.0, 0.0, 0.0));
 			}
 		};
 		canvas.setSize(width, height);
