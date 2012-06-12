@@ -55,7 +55,7 @@ public class Renderer {
 		} // GraphicObjects loop.
 
 		// Flip screen.
-		zbuf.draw(g);
+		zbuf.smooth().draw(g);
 	}
 
 	private static void rasterTriangle(Vector3f[] vertices,	Vector3f[] intensities, 

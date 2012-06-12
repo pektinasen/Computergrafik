@@ -1,6 +1,9 @@
 package de.softwarekollektiv.cg.gl.math;
 
 public final class Vector3f {
+	
+	public static final Vector3f ZERO = new Vector3f(0.0, 0.0, 0.0);
+	
 	private final double x;
 	private final double y;
 	private final double z;

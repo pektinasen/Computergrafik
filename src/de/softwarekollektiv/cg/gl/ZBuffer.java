@@ -12,6 +12,13 @@ class ZBuffer {
 	private final int width;
 	private final int height;
 
+	private ZBuffer(int width, int height, final Vector3f[][] pixel, final double[][] zindex) {
+		this.width = width;
+		this.height = height;
+		this.pixel = pixel;
+		this.zindex = zindex;
+	}
+	
 	ZBuffer(int width, int height, final Vector3f bgcol) {
 		this.width = width;
 		this.height = height;
@@ -33,6 +40,32 @@ class ZBuffer {
 		}
 	}
 
+	ZBuffer smooth() {
+		Vector3f[][] newpixel = new Vector3f[width][height];
+		for(int x = 0; x < width; x++) {
+			for(int y = 0; y < height; y++) {
+				newpixel[x][y] = Vector3f.ZERO;
+				newpixel[x][y] = newpixel[x][y].add(getPixel(x - 1, y - 1).scale(1.0 / 36));
+				newpixel[x][y] = newpixel[x][y].add(getPixel(x - 1, y).scale(4.0 / 36));
+				newpixel[x][y] = newpixel[x][y].add(getPixel(x - 1, y + 1).scale(1.0 / 36));
+				newpixel[x][y] = newpixel[x][y].add(getPixel(x, y - 1).scale(4.0 / 36));
+				newpixel[x][y] = newpixel[x][y].add(getPixel(x, y).scale(16.0 / 36));
+				newpixel[x][y] = newpixel[x][y].add(getPixel(x, y + 1).scale(4.0 / 36));
+				newpixel[x][y] = newpixel[x][y].add(getPixel(x + 1, y - 1).scale(1.0 / 36));
+				newpixel[x][y] = newpixel[x][y].add(getPixel(x + 1, y).scale(4.0 / 36));
+				newpixel[x][y] = newpixel[x][y].add(getPixel(x + 1, y + 1).scale(1.0 / 36));
+			}
+		}
+		return new ZBuffer(width, height, newpixel, zindex);
+	}
+	
+	private Vector3f getPixel(int x, int y) {
+		if(x < 0 || y < 0 || x >= width || y >= height)
+			return Vector3f.ZERO;
+			
+		return pixel[x][y];
+	}
+	
 	void draw(Graphics g) {
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
