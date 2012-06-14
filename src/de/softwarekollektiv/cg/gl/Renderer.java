@@ -184,7 +184,7 @@ public class Renderer {
 
 				// Get color of point.
 				Vector3f col = face.getColor(lambda1, lambda2, lambda3);
-
+				
 				// Interpolate intensity.
 				double r = col.getX()
 						* (lambda1 * intensities[0].getX() + lambda2

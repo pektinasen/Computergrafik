@@ -60,7 +60,7 @@ class ScenarioUno extends GLScene {
 		
 		// Lights.
 		Light light1 = new SimpleLight(-9.5, -9.5, 0.5, 1.0, 0.0, 0.0);
-		Light light2 = new SimpleLight(9.5, -9.5, 0.5, 0.0, 0.0, 1.0);
+		Light light2 = new SimpleLight(9.5, -9.5, 0.5, 0.0, 1.0, 1.0);
 		
 		// Camera.
 		Camera cam = new Camera(0, 30, 10, 0.0, -1.0, 0.0, 0, 0, 1, 1, 60, 1, 100);

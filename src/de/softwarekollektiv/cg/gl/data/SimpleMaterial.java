@@ -12,8 +12,8 @@ public final class SimpleMaterial implements Material {
 
 	public static final Material STONE = new SimpleMaterial(0.5, 0.5, 0.5, 0.3,
 			0.3, 0.3, 3, 5);
-	public static final Material METALL = new SimpleMaterial(0.6, 0.6, 0.6, 1.0,
-			1.0, 1.0, 5, 15);
+	public static final Material METALL = new SimpleMaterial(0.6, 0.6, 0.6, 0.8,
+			0.8, 0.8, 5, 15);
 
 	/**
 	 * Construct a SimpleMaterial.

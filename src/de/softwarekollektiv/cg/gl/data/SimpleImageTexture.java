@@ -1,5 +1,6 @@
 package de.softwarekollektiv.cg.gl.data;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 import de.softwarekollektiv.cg.gl.Texture;
@@ -32,15 +33,12 @@ public class SimpleImageTexture implements Texture {
 				* c.getX();
 		double vy = lambda1 * a.getY() + lambda2 * b.getY() + lambda3
 				* c.getY();
-		int x = (int) (image.getWidth() * vx);
-		int y = (int) (image.getHeight() * vy);
+		int x = (int) (image.getWidth() * (1 - vx));
+		int y = (int) (image.getHeight() * (1 - vy));
 		int color = image.getRGB(x, y);
 
-		// Convert to RGB.
-		double b = 1.0 / (double)(255 * (color & 0xFF));
-		double g = 1.0 / (double)(255 * ((color>>8) & 0xFF));
-		double r = 1.0 / (double)(255 * ((color>>16) & 0xFF));
-
-		return new Vector3f(r, g, b);
+		// Convert to RGB.		
+		Color c = new Color(color);
+		return new Vector3f(c.getRed() / 255.0, c.getGreen() / 255.0, c.getBlue() / 255.0);
 	}
 }
