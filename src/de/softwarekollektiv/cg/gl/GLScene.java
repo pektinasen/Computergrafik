@@ -29,6 +29,11 @@ public class GLScene {
 	// Public API.
 	// #######################
 	
+	public void clearObjects() {
+		objs.clear();
+		transm.clear();
+	}
+	
 	public void setCamera(final Camera cam) {
 		assert(cam != null);
 		

@@ -8,11 +8,52 @@ import de.softwarekollektiv.cg.gl.data.SimpleLight;
 import de.softwarekollektiv.cg.gl.math.QuadMatrixf;
 
 class ScenarioUno extends GLScene {
+	
+	private final GraphicObject world;
+	private final QuadMatrixf worldM;
+	private final GraphicObject cube;
+	
+	void update(double alpha) {	
+		synchronized(this) {
+			double radalpha = Math.toRadians(alpha);
+			QuadMatrixf cubeM = new QuadMatrixf(new double[][] { // Translate/Scale.
+					{
+						3, 0, 0, -3
+					},
+					{
+						0, 3, 0, 0
+					},
+					{
+						0, 0, 3, 4
+					},
+					{
+						0, 0, 0, 1
+					}	
+			}).mult(new QuadMatrixf(new double[][] { // Rotate before.
+					{
+						Math.cos(radalpha), -Math.sin(radalpha), 0, 0
+					},
+					{
+						Math.sin(radalpha), Math.cos(radalpha), 0, 0
+					},
+					{
+						0, 0, 1, 0
+					},
+					{
+						0, 0, 0, 1
+					}	
+			}));
+			
+			this.clearObjects();
+			this.addGraphicObject(world, worldM);
+			this.addGraphicObject(cube, cubeM);
+		}
+	}
+	
 	ScenarioUno() {
-
 		// Object 1: The World.
-		GraphicObject world = new World();
-		QuadMatrixf worldM = new QuadMatrixf(new double[][] {
+		world = new World();
+		worldM = new QuadMatrixf(new double[][] {
 				{
 					1, 0, 0, -10
 				},
@@ -28,35 +69,8 @@ class ScenarioUno extends GLScene {
 		});
 		
 		// Object 2: The Cube.
-		GraphicObject cube = new Cube();
-		double alpha = Math.toRadians(35);
-		QuadMatrixf cubeM = new QuadMatrixf(new double[][] { // Translate/Scale.
-				{
-					3, 0, 0, -3
-				},
-				{
-					0, 3, 0, 0
-				},
-				{
-					0, 0, 3, 4
-				},
-				{
-					0, 0, 0, 1
-				}	
-		}).mult(new QuadMatrixf(new double[][] { // Rotate before.
-				{
-					Math.cos(alpha), -Math.sin(alpha), 0, 0
-				},
-				{
-					Math.sin(alpha), Math.cos(alpha), 0, 0
-				},
-				{
-					0, 0, 1, 0
-				},
-				{
-					0, 0, 0, 1
-				}	
-		}));
+		cube = new Cube();
+
 		
 		// Lights.
 		Light light1 = new SimpleLight(-9.5, -9.5, 0.5, 1.0, 0.0, 0.0);
@@ -66,12 +80,12 @@ class ScenarioUno extends GLScene {
 		Camera cam = new Camera(0, 30, 10, 0.0, -1.0, 0.0, 0, 0, 1, 1, 60, 1, 100);
 		
 		// Define the scene.
-		this.addGraphicObject(world, worldM);
-		this.addGraphicObject(cube, cubeM);
 		this.setUseLighting(true);
 		this.setAmbientLight(1.0, 1.0, 1.0);
 		this.addLight(light1);
 		this.addLight(light2);
 		this.setCamera(cam);
+		
+		update(35);
 	}
 }

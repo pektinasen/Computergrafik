@@ -6,7 +6,6 @@ import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import de.softwarekollektiv.cg.gl.GLScene;
 import de.softwarekollektiv.cg.gl.Renderer;
 
 /**
@@ -19,16 +18,37 @@ public class SimpleGLTest extends JFrame {
 		new SimpleGLTest();
 	}
 
-	private final GLScene scene;
+	private final ScenarioUno scene;
+	private final JPanel canvas;
+	private double alpha = 35;
 
 	SimpleGLTest() throws IOException {
 		scene = new ScenarioUno();
+		
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				while(true) {
+					alpha += 10;
+					alpha %= 360;
+					scene.update(alpha);
+					canvas.repaint();
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						return;
+					}
+				}
+			}
+			
+		}).start();
 		
 		final int width = 800;
 		final int height = 600;
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(width, height);
-		JPanel canvas = new JPanel() {
+		canvas = new JPanel() {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
@@ -38,7 +58,5 @@ public class SimpleGLTest extends JFrame {
 		canvas.setSize(width, height);
 		this.add(canvas);
 		this.setVisible(true);
-
-		canvas.revalidate();
 	}
 }
