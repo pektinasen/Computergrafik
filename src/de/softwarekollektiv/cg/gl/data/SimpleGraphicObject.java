@@ -5,7 +5,6 @@ import java.util.List;
 
 import de.softwarekollektiv.cg.gl.Face;
 import de.softwarekollektiv.cg.gl.GraphicObject;
-import de.softwarekollektiv.cg.gl.math.Vector3f;
 
 /**
  * SimpleGraphicObject.
@@ -33,12 +32,4 @@ public class SimpleGraphicObject implements GraphicObject {
 		
 		return faces.get(idx);
 	}
-
-	@Override
-	public Vector3f getColor(int face, double l1, double l2, double l3) {
-		assert(l1 >= 0 && l2 >= 0 && l3 >= 0 && (l1 + l2 + l3) == 1);
-			
-		return new Vector3f(1.0, 1.0, 1.0);
-	}
-
 }

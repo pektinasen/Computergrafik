@@ -2,6 +2,7 @@ package de.softwarekollektiv.cg.gl.data;
 
 import de.softwarekollektiv.cg.gl.Face;
 import de.softwarekollektiv.cg.gl.Material;
+import de.softwarekollektiv.cg.gl.Texture;
 import de.softwarekollektiv.cg.gl.math.Vector3f;
 
 /**
@@ -13,6 +14,7 @@ public class SimpleFace implements Face {
 
 	private final Vector3f[] v = new Vector3f[3];
 	private final Material m;
+	private final Texture t;
 	private final Vector3f n;
 		
 	/**
@@ -25,7 +27,7 @@ public class SimpleFace implements Face {
 	 * @param b vertex b
 	 * @param c vertex c
 	 */
-	public SimpleFace(final Vector3f a, final Vector3f b, final Vector3f c, Material m) {
+	public SimpleFace(final Vector3f a, final Vector3f b, final Vector3f c, Material m, Texture t) {
 		assert(a != null && b != null && c != null && m != null);
 		
 		this.v[0] = a;
@@ -33,6 +35,7 @@ public class SimpleFace implements Face {
 		this.v[2] = c;
 		
 		this.m = m;
+		this.t = t;
 		
 		final Vector3f ba = b.subtract(a);
 		final Vector3f ca = c.subtract(a);
@@ -56,4 +59,8 @@ public class SimpleFace implements Face {
 		return m;
 	}
 
+	@Override
+	public Vector3f getColor(double l1, double l2, double l3) {		
+		return t.getColor(l1, l2, l3);
+	}
 }

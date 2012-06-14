@@ -51,7 +51,7 @@ public class Renderer {
 							ndcVector.getZ());
 				}
 
-				rasterTriangle(vertices, intensities, obj, faceId, zbuf);
+				rasterTriangle(vertices, intensities, f, zbuf);
 
 			} // Faces loop.
 		} // GraphicObjects loop.
@@ -72,7 +72,7 @@ public class Renderer {
 	}
 
 	private static void rasterTriangle(Vector3f[] vertices,
-			Vector3f[] intensities, GraphicObject obj, int faceId, ZBuffer zbuf) {
+			Vector3f[] intensities, Face face, ZBuffer zbuf) {
 
 		// Prepare for barycentric coordinates.
 		QuadMatrixf Mb;
@@ -80,25 +80,17 @@ public class Renderer {
 			Vector3f A = vertices[0];
 			Vector3f B = vertices[1];
 			Vector3f C = vertices[2];
-			
-			double fac = 1 / (A.getX() * (B.getY() - C.getY()) + B.getX() * (C.getY() - A.getY()) + C.getX() * (A.getY() - B.getY()));
+
+			double fac = 1 / (A.getX() * (B.getY() - C.getY()) + B.getX()
+					* (C.getY() - A.getY()) + C.getX() * (A.getY() - B.getY()));
 			Mb = new QuadMatrixf(new double[][] {
-					{
-						B.getY() - C.getY(),
-						C.getX() - B.getX(),
-						B.getX() * C.getY() - B.getY() * C.getX()
-					},
-					{
-						C.getY() - A.getY(),
-						A.getX() - C.getX(),
-						C.getX() * A.getY() - C.getY() * A.getX()
-					}, 
-					{
-						A.getY() - B.getY(),
-						B.getX() - A.getX(),
-						A.getX() * B.getY() - A.getY() * B.getX()
-					}
-			}).scale(fac);	
+					{ B.getY() - C.getY(), C.getX() - B.getX(),
+							B.getX() * C.getY() - B.getY() * C.getX() },
+					{ C.getY() - A.getY(), A.getX() - C.getX(),
+							C.getX() * A.getY() - C.getY() * A.getX() },
+					{ A.getY() - B.getY(), B.getX() - A.getX(),
+							A.getX() * B.getY() - A.getY() * B.getX() } })
+					.scale(fac);
 		}
 
 		// Sort.
@@ -132,8 +124,7 @@ public class Renderer {
 
 		while (yi <= sorted[1].getY()) {
 
-			rasterLine(xl, xr, yi, vertices, intensities, Mb, obj, faceId,
-					zbuf);
+			rasterLine(xl, xr, yi, vertices, intensities, Mb, face, zbuf);
 
 			yi++;
 			xl += dxl;
@@ -155,8 +146,7 @@ public class Renderer {
 
 		while (yi <= sorted[2].getY()) {
 
-			rasterLine(xl, xr, yi, vertices, intensities, Mb, obj, faceId,
-					zbuf);
+			rasterLine(xl, xr, yi, vertices, intensities, Mb, face, zbuf);
 
 			yi++;
 			xl += dxl;
@@ -167,14 +157,13 @@ public class Renderer {
 
 	private static void rasterLine(double xl, double xr, int yi,
 			Vector3f[] vertices, Vector3f[] intensities, QuadMatrixf Mb,
-			GraphicObject obj, int faceId, ZBuffer zbuf) {
+			Face face, ZBuffer zbuf) {
 		int xi = (int) Math.ceil(xl);
 		while (xi <= xr) {
+			
 			// Calculate barycentric coordinates.
-			// We always use the center of a pixel.
 			Vector3f P = new Vector3f(xi, yi, 1.0);
 			Vector3f L = Mb.mult(P);
-
 			double lambda1 = L.getX();
 			double lambda2 = L.getY();
 			double lambda3 = L.getZ();
@@ -182,26 +171,23 @@ public class Renderer {
 			// Only draw points in triangle.
 			if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0) {
 
+				// Interpolate z.
+				double pz = lambda1 * vertices[0].getZ() + lambda2
+						* vertices[1].getZ() + lambda3 * vertices[2].getZ();
+				
 				// Get color of point.
-				Vector3f col = obj.getColor(faceId, lambda1, lambda2, lambda3);
+				Vector3f col = face.getColor(lambda1, lambda2, lambda3);
 
 				// Interpolate intensity.
-				col = new Vector3f(col.getX()
-						* (lambda1 * intensities[0].getX() + lambda2
-								* intensities[1].getX() + lambda3
-								* intensities[2].getX()), col.getY()
-						* (lambda1 * intensities[0].getY() + lambda2
-								* intensities[1].getY() + lambda3
-								* intensities[2].getY()), col.getZ()
-						* (lambda1 * intensities[0].getZ() + lambda2
-								* intensities[1].getZ() + lambda3
-								* intensities[2].getZ()));
+				double r = col.getX() * (lambda1 * intensities[0].getX() + lambda2 * intensities[1].getX() + lambda3 * intensities[2].getX());
+				double g = col.getY() * (lambda1 * intensities[0].getY() + lambda2 * intensities[1].getY() + lambda3 * intensities[2].getY());
+				double b = col.getZ() * (lambda1 * intensities[0].getZ() + lambda2 * intensities[1].getZ() + lambda3 * intensities[2].getZ());
 				
-				// Interpolate z.
-				double pz = lambda1 * vertices[0].getZ() + lambda2 * vertices[1].getZ() + lambda3 * vertices[2].getZ();
+				// Normalize color.
+				Vector3f color = new Vector3f(r, g, b).normalize();
 
 				// Draw into zBuffer.
-				zbuf.setPixel(xi, yi, pz, col);
+				zbuf.setPixel(xi, yi, pz, color);
 			}
 
 			xi++;
