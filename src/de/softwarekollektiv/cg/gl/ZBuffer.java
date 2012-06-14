@@ -31,6 +31,11 @@ class ZBuffer {
 	}
 
 	void setPixel(int x, int y, double z, final Vector3f c) {
+		if(x < 0 || y < 0 || x >= width || y >= height) {
+			System.out.println("Warning: Pixel out of range in ZBuffer.");
+			return;
+		}
+					
 		if (z < zindex[x][y]) {
 			zindex[x][y] = z;
 			pixel[x][y] = c;
