@@ -1,5 +1,6 @@
 package de.softwarekollektiv.cg.gl;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -14,7 +15,7 @@ public class Renderer {
 		assert (g != null && scene != null);
 
 		final QuadMatrixf ndcMatrix = scene.getCamera().getNDCMatrix();
-		final ZBuffer zbuf = new ZBuffer(width, height, bgcol);
+		ZBuffer zbuf = new ZBuffer(width, height, bgcol);
 
 		for (int gidx = 0; gidx < scene.getNumObjects(); gidx++) {
 			GraphicObject obj = scene.getGraphicObject(gidx);
@@ -54,8 +55,19 @@ public class Renderer {
 			} // Faces loop.
 		} // GraphicObjects loop.
 
+		// Smooth edges.
+		zbuf = zbuf.smooth();
+		
 		// Flip screen.
-		zbuf.smooth().draw(g);
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				Vector3f pixel = zbuf.getPixel(x, y);
+				Color col = new Color((float) pixel.getX(),
+						(float) pixel.getY(), (float) pixel.getZ());
+				g.setColor(col);
+				g.drawRect(x, y, 1, 1);
+			}
+		}
 	}
 
 	private static void rasterTriangle(Vector3f[] vertices,	Vector3f[] intensities, 

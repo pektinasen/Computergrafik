@@ -1,8 +1,5 @@
 package de.softwarekollektiv.cg.gl;
 
-import java.awt.Color;
-import java.awt.Graphics;
-
 import de.softwarekollektiv.cg.gl.math.Vector3f;
 
 class ZBuffer {
@@ -59,22 +56,10 @@ class ZBuffer {
 		return new ZBuffer(width, height, newpixel, zindex);
 	}
 	
-	private Vector3f getPixel(int x, int y) {
+	Vector3f getPixel(int x, int y) {
 		if(x < 0 || y < 0 || x >= width || y >= height)
 			return Vector3f.ZERO;
 			
 		return pixel[x][y];
 	}
-	
-	void draw(Graphics g) {
-		for (int x = 0; x < width; x++) {
-			for (int y = 0; y < height; y++) {
-				Color col = new Color((float) pixel[x][y].getX(),
-						(float) pixel[x][y].getY(), (float) pixel[x][y].getZ());
-				g.setColor(col);
-				g.drawRect(x, y, 1, 1);
-			}
-		}
-	}
-
 }
