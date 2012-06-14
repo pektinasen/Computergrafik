@@ -11,44 +11,51 @@ import de.softwarekollektiv.cg.gl.math.Vector3f;
 import de.softwarekollektiv.cg.gl.math.Vector4f;
 
 public class Renderer {
-	public static void render(Graphics g, int width, int height, GLScene scene,
-			Vector3f bgcol) {
+	public static void render(Graphics g, int width, int height, GLScene scene) {
 		assert (g != null && scene != null);
 
 		final QuadMatrixf ndcMatrix = scene.getCamera().getNDCMatrix();
-		ZBuffer zbuf = new ZBuffer(width, height, bgcol);
+		ZBuffer zbuf = new ZBuffer(width, height, scene.getBackgroundColor());
 
 		for (int gidx = 0; gidx < scene.getNumObjects(); gidx++) {
 			GraphicObject obj = scene.getGraphicObject(gidx);
-			QuadMatrixf m = ndcMatrix.mult(scene.getTransformationMatrix(gidx));
+			QuadMatrixf worldMatrix = scene.getTransformationMatrix(gidx);
 
 			for (int faceId = 0; faceId < obj.size(); faceId++) {
 				Face f = obj.getFace(faceId);
+
+				// First transform normal vector to world coordinates.
+				Vector3f N = worldMatrix.mult(
+						f.getNormal().getHomogeneousVector4f())
+						.normalizeHomogeneous();
 
 				Vector3f[] vertices = new Vector3f[3];
 				Vector3f[] intensities = new Vector3f[3];
 				for (int i = 0; i < 3; i++) {
 					Vector3f v = f.getVertex(i);
-					Vector4f vhomogen = v.getHomogeneousVector4f();
 
-					// Calculate light intensities in world coordinates.
+					// Transform to world coordinates.
+					Vector4f vworld = worldMatrix.mult(v
+							.getHomogeneousVector4f());
+
+					// Calculate light intensity in world coordinates.
 					if (scene.getUseLightning())
 						intensities[i] = PhongLightning.getIntensity(scene, f,
-								v);
+								N, vworld.normalizeHomogeneous());
 					else
-						intensities[i] = new Vector3f(1.0, 1.0, 1.0);
+						intensities[i] = Vector3f.ONE;
 
 					// Transform vertex to NDC.
-					Vector4f ndcVector = m.mult(vhomogen);
+					Vector4f vndc = ndcMatrix.mult(vworld);
 
 					// Normalize homogeneous component.
-					ndcVector = ndcVector.normalizeHomogeneous();
+					Vector3f vndcCartesian = vndc.normalizeHomogeneous();
 
 					// View port.
 					vertices[i] = new Vector3f(
-							((ndcVector.getX() + 1) * (width / 2)),
-							((ndcVector.getY() + 1) * (height / 2)),
-							ndcVector.getZ());
+							((vndcCartesian.getX() + 1) * (width / 2)),
+							((vndcCartesian.getY() + 1) * (height / 2)),
+							vndcCartesian.getZ());
 				}
 
 				rasterTriangle(vertices, intensities, f, zbuf);
@@ -66,7 +73,7 @@ public class Renderer {
 				Color col = new Color((float) pixel.getX(),
 						(float) pixel.getY(), (float) pixel.getZ());
 				g.setColor(col);
-				g.drawRect(x, y, 1, 1);
+				g.drawRect(width - x, height - y, 1, 1);
 			}
 		}
 	}
@@ -160,7 +167,7 @@ public class Renderer {
 			Face face, ZBuffer zbuf) {
 		int xi = (int) Math.ceil(xl);
 		while (xi <= xr) {
-			
+
 			// Calculate barycentric coordinates.
 			Vector3f P = new Vector3f(xi, yi, 1.0);
 			Vector3f L = Mb.mult(P);
@@ -174,17 +181,29 @@ public class Renderer {
 				// Interpolate z.
 				double pz = lambda1 * vertices[0].getZ() + lambda2
 						* vertices[1].getZ() + lambda3 * vertices[2].getZ();
-				
+
 				// Get color of point.
 				Vector3f col = face.getColor(lambda1, lambda2, lambda3);
 
 				// Interpolate intensity.
-				double r = col.getX() * (lambda1 * intensities[0].getX() + lambda2 * intensities[1].getX() + lambda3 * intensities[2].getX());
-				double g = col.getY() * (lambda1 * intensities[0].getY() + lambda2 * intensities[1].getY() + lambda3 * intensities[2].getY());
-				double b = col.getZ() * (lambda1 * intensities[0].getZ() + lambda2 * intensities[1].getZ() + lambda3 * intensities[2].getZ());
-				
-				// Normalize color.
-				Vector3f color = new Vector3f(r, g, b).normalize();
+				double r = col.getX()
+						* (lambda1 * intensities[0].getX() + lambda2
+								* intensities[1].getX() + lambda3
+								* intensities[2].getX());
+				double g = col.getY()
+						* (lambda1 * intensities[0].getY() + lambda2
+								* intensities[1].getY() + lambda3
+								* intensities[2].getY());
+				double b = col.getZ()
+						* (lambda1 * intensities[0].getZ() + lambda2
+								* intensities[1].getZ() + lambda3
+								* intensities[2].getZ());
+
+				// Cut off colors.
+				r = (r > 1.0) ? 1.0 : ((r < 0.0) ? 0.0 : r);
+				g = (g > 1.0) ? 1.0 : ((g < 0.0) ? 0.0 : g);
+				b = (b > 1.0) ? 1.0 : ((b < 0.0) ? 0.0 : b);
+				Vector3f color = new Vector3f(r, g, b);
 
 				// Draw into zBuffer.
 				zbuf.setPixel(xi, yi, pz, color);

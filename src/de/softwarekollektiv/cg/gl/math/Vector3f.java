@@ -3,6 +3,7 @@ package de.softwarekollektiv.cg.gl.math;
 public final class Vector3f {
 	
 	public static final Vector3f ZERO = new Vector3f(0.0, 0.0, 0.0);
+	public static final Vector3f ONE = new Vector3f(1.0, 1.0, 1.0);
 	
 	private final double x;
 	private final double y;

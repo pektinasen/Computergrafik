@@ -11,6 +11,7 @@ public class GLScene {
 	private Vector3f ambient_light;
 	private Vector3f phong_constants;
 	private boolean use_lightning;
+	private Vector3f bgcol;
 	
 	private final List<GraphicObject> objs = new ArrayList<GraphicObject>();
 	private final List<QuadMatrixf> transm = new ArrayList<QuadMatrixf>();
@@ -18,7 +19,10 @@ public class GLScene {
 	
 	public GLScene() {
 		// Set stupid phong constants to sane values.
-		phong_constants = new Vector3f(0.001, 0.0001, 0.0000001);
+		phong_constants = new Vector3f(0.01, 0.001, 0.00001);
+		
+		// Default to BLACK background.
+		bgcol = Vector3f.ZERO;
 	}
 	
 	// #######################
@@ -49,7 +53,11 @@ public class GLScene {
 	}
 	
 	public void setAmbientLight(double r, double g, double b) {
-		this.ambient_light = new Vector3f(r, g, b);
+		ambient_light = new Vector3f(r, g, b);
+	}
+	
+	public void setBackgroundColor(Vector3f color) {
+		bgcol = color;
 	}
 	
 	// #######################
@@ -100,5 +108,9 @@ public class GLScene {
 	
 	final boolean getUseLightning() {
 		return use_lightning;
+	}
+
+	final Vector3f getBackgroundColor() {
+		return bgcol;
 	}
 }

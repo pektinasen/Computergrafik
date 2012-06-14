@@ -3,7 +3,7 @@ package de.softwarekollektiv.cg.gl;
 import de.softwarekollektiv.cg.gl.math.Vector3f;
 
 class PhongLightning {
-	public static Vector3f getIntensity(GLScene scene, Face f, Vector3f point) {		
+	static Vector3f getIntensity(GLScene scene, Face f, Vector3f N, Vector3f point) {		
 		
 		// NOTE: Remember, .get{X,Y,Z}() corresponds to (R,G,B)!
 		
@@ -24,7 +24,6 @@ class PhongLightning {
 		// ###########################
 							
 		// Surface vector.
-		Vector3f N = f.getNormal();
 		Vector3f Nnorm = N.normalize();
 		
 		// Phong constants.
@@ -35,6 +34,7 @@ class PhongLightning {
 		
 		// Vector to eye.
 		Vector3f A = scene.getCamera().getPosition().subtract(point);
+		Vector3f Anorm = A.normalize();
 		
 		// Accumulators.
 		double res_diffuse_r = 0;
@@ -57,11 +57,11 @@ class PhongLightning {
 			double rl = L.length();
 			double cfactor = cphong.getX() + cphong.getY() * rl + cphong.getZ() * rl * rl;
 			
-			double costheta = L.getX() * N.getX() + L.getY() * N.getY() + L.getZ() * N.getZ();
+			double costheta = Lnorm.scalarProduct(Nnorm);
 			
 			// Only emit diffuse reflection if the arc is between
 			// zero and 90 degrees.
-			if(!(costheta < 0 || costheta > 1)) {
+			if(costheta >= 0) {
 			
 				double diffuse_c = costheta / cfactor;
 				res_diffuse_r += diffuse_c * lintensity.getX() * drc.getX();
@@ -74,13 +74,13 @@ class PhongLightning {
 			// Specular light.
 			// ###########################
 							
-			double LNp = Lnorm.getX() * Nnorm.getX() + Lnorm.getY() * Nnorm.getY() + Lnorm.getZ() * Nnorm.getZ();
-			double NAp = Nnorm.getX() * A.getX() + Nnorm.getY() * A.getY() + Nnorm.getZ() * A.getZ();
-			double ALp = A.getX() * Lnorm.getX() + A.getY() * Lnorm.getY() + A.getZ() * Lnorm.getZ();		
+			double LNp = Lnorm.scalarProduct(Nnorm);
+			double NAp = Nnorm.scalarProduct(Anorm);
+			double ALp = Anorm.scalarProduct(Lnorm);	
 			double cosalpha = 2 * LNp * NAp - ALp;
 			
 			// Same here.
-			if(!(cosalpha < 0 || cosalpha > 1)) {
+			if(cosalpha >= 0) {
 				// Const part of the formula.
 				float specular_c = (float) (f.getMaterial().getSpecularReflectionCoefficient() * Math.pow(cosalpha, f.getMaterial().getSpecularN()) / cfactor); 
 				

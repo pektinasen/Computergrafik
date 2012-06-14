@@ -26,7 +26,12 @@ public final class Vector4f {
 		this.w = w;
 	}
 
-	public Vector4f normalizeHomogeneous() {
-		return new Vector4f(x / w, y / w, z / w, 1.0);
+	public Vector3f normalizeHomogeneous() {
+		return new Vector3f(x / w, y / w, z / w);
+	}
+	
+	@Override
+	public String toString() {
+		return "(" + x + ", " + y + ", " + z + ", " + w + ")";
 	}
 }
