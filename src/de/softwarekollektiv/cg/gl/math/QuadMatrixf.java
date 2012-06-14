@@ -51,6 +51,16 @@ public class QuadMatrixf {
 
 		return new QuadMatrixf(newm);
 	}
+	
+
+	public QuadMatrixf scale(double v) {
+		double[][] newm = new double[n][n];
+		for(int i = 0; i < n; i++)
+			for(int j = 0; j < n; j++)
+				newm[i][j] = m[i][j] * v;
+		
+		return new QuadMatrixf(newm);
+	}
 
 	public QuadMatrixf mult(QuadMatrixf m2) {
 		assert (m2.n == n);

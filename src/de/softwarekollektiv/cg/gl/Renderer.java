@@ -11,7 +11,8 @@ import de.softwarekollektiv.cg.gl.math.Vector3f;
 import de.softwarekollektiv.cg.gl.math.Vector4f;
 
 public class Renderer {
-	public static void render(Graphics g, int width, int height, GLScene scene, Vector3f bgcol) {
+	public static void render(Graphics g, int width, int height, GLScene scene,
+			Vector3f bgcol) {
 		assert (g != null && scene != null);
 
 		final QuadMatrixf ndcMatrix = scene.getCamera().getNDCMatrix();
@@ -36,7 +37,7 @@ public class Renderer {
 								v);
 					else
 						intensities[i] = new Vector3f(1.0, 1.0, 1.0);
-					
+
 					// Transform vertex to NDC.
 					Vector4f ndcVector = m.mult(vhomogen);
 
@@ -49,7 +50,7 @@ public class Renderer {
 							((ndcVector.getY() + 1) * (height / 2)),
 							ndcVector.getZ());
 				}
-				
+
 				rasterTriangle(vertices, intensities, obj, faceId, zbuf);
 
 			} // Faces loop.
@@ -57,7 +58,7 @@ public class Renderer {
 
 		// Smooth edges.
 		zbuf = zbuf.smooth();
-		
+
 		// Flip screen.
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
@@ -70,11 +71,35 @@ public class Renderer {
 		}
 	}
 
-	private static void rasterTriangle(Vector3f[] vertices,	Vector3f[] intensities, 
-			GraphicObject obj, int faceId, ZBuffer zbuf) {
-		
+	private static void rasterTriangle(Vector3f[] vertices,
+			Vector3f[] intensities, GraphicObject obj, int faceId, ZBuffer zbuf) {
+
 		// Prepare for barycentric coordinates.
-		Vector3f Nview = vertices[2].subtract(vertices[0]).vectorProduct(vertices[1].subtract(vertices[0])).normalize();
+		QuadMatrixf Mb;
+		{
+			Vector3f A = vertices[0];
+			Vector3f B = vertices[1];
+			Vector3f C = vertices[2];
+			
+			double fac = 1 / (A.getX() * (B.getY() - C.getY()) + B.getX() * (C.getY() - A.getY()) + C.getX() * (A.getY() - B.getY()));
+			Mb = new QuadMatrixf(new double[][] {
+					{
+						B.getY() - C.getY(),
+						C.getX() - B.getX(),
+						B.getX() * C.getY() - B.getY() * C.getX()
+					},
+					{
+						C.getY() - A.getY(),
+						A.getX() - C.getX(),
+						C.getX() * A.getY() - C.getY() * A.getX()
+					}, 
+					{
+						A.getY() - B.getY(),
+						B.getX() - A.getX(),
+						A.getX() * B.getY() - A.getY() * B.getX()
+					}
+			}).scale(fac);	
+		}
 
 		// Sort.
 		Vector3f[] sorted = Arrays.copyOf(vertices, 3);
@@ -94,7 +119,6 @@ public class Renderer {
 
 		// #############################
 		// Simple scan-line algorithm.
-		// With intensity interpolation.
 		// #############################
 
 		// Lower half.
@@ -105,10 +129,11 @@ public class Renderer {
 		int yi = (int) Math.ceil(sorted[0].getY());
 		double xl = sorted[0].getX() + (yi - sorted[0].getY()) * dxl;
 		double xr = sorted[0].getX() + (yi - sorted[0].getY()) * dxr;
-			
+
 		while (yi <= sorted[1].getY()) {
 
-			rasterLine(xl, xr, yi, vertices, intensities, Nview, obj, faceId, zbuf);
+			rasterLine(xl, xr, yi, vertices, intensities, Mb, obj, faceId,
+					zbuf);
 
 			yi++;
 			xl += dxl;
@@ -119,18 +144,19 @@ public class Renderer {
 		if (left == 1) {
 			dyl = sorted[2].getY() - sorted[1].getY();
 			dxl = (sorted[2].getX() - sorted[1].getX()) / dyl;
-			
+
 			xl = sorted[1].getX() + (yi - sorted[1].getY()) * dxl;
 		} else {
 			dyr = sorted[2].getY() - sorted[1].getY();
 			dxr = (sorted[2].getX() - sorted[1].getX()) / dyr;
-			
+
 			xr = sorted[1].getX() + (yi - sorted[1].getY()) * dxr;
 		}
-		
-		while(yi <= sorted[2].getY()) {
 
-			rasterLine(xl, xr, yi, vertices, intensities, Nview, obj, faceId, zbuf);
+		while (yi <= sorted[2].getY()) {
+
+			rasterLine(xl, xr, yi, vertices, intensities, Mb, obj, faceId,
+					zbuf);
 
 			yi++;
 			xl += dxl;
@@ -139,47 +165,45 @@ public class Renderer {
 
 	}
 
-	private static void rasterLine(double xl, double xr, int yi, 
-			Vector3f[] vertices, Vector3f[] intensities, Vector3f Nview, GraphicObject obj,
-			int faceId, ZBuffer zbuf) {
+	private static void rasterLine(double xl, double xr, int yi,
+			Vector3f[] vertices, Vector3f[] intensities, QuadMatrixf Mb,
+			GraphicObject obj, int faceId, ZBuffer zbuf) {
 		int xi = (int) Math.ceil(xl);
-		while(xi <= xr) {
-			Vector3f A = vertices[0];			
-			Vector3f B = vertices[1];
-			Vector3f C = vertices[2];	
-			
+		while (xi <= xr) {
 			// Calculate barycentric coordinates.
 			// We always use the center of a pixel.
-			double px = xi - 0.5;
-			double py = yi - 0.5;			
-			double pz = (((A.getX() - px) * Nview.getX() + (A.getY() - py) * Nview.getY()) / Nview.getZ()) + A.getZ();
-			Vector3f P = new Vector3f(px, py, pz);
-					
-			double areaABC = B.subtract(A).vectorProduct(C.subtract(A)).length();
-			double areaPBC = B.subtract(P).vectorProduct(C.subtract(P)).length();
-			double areaPCA = C.subtract(P).vectorProduct(A.subtract(P)).length();
-			
-			double lambda1 = areaPBC / areaABC;
-			double lambda2 = areaPCA / areaABC;
-			double lambda3 = 1 - lambda1 - lambda2;
-			
+			Vector3f P = new Vector3f(xi, yi, 1.0);
+			Vector3f L = Mb.mult(P);
+
+			double lambda1 = L.getX();
+			double lambda2 = L.getY();
+			double lambda3 = L.getZ();
+
 			// Only draw points in triangle.
-			if(lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0) {
-			
+			if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0) {
+
 				// Get color of point.
 				Vector3f col = obj.getColor(faceId, lambda1, lambda2, lambda3);
-				
+
 				// Interpolate intensity.
-				col = new Vector3f(
-						col.getX() * (lambda1 * intensities[0].getX() + lambda2 * intensities[1].getX() + lambda3 * intensities[2].getX()), 
-						col.getY() * (lambda1 * intensities[0].getY() + lambda2 * intensities[1].getY() + lambda3 * intensities[2].getY()), 
-						col.getZ() * (lambda1 * intensities[0].getZ() + lambda2 * intensities[1].getZ() + lambda3 * intensities[2].getZ())
-						);
-	
+				col = new Vector3f(col.getX()
+						* (lambda1 * intensities[0].getX() + lambda2
+								* intensities[1].getX() + lambda3
+								* intensities[2].getX()), col.getY()
+						* (lambda1 * intensities[0].getY() + lambda2
+								* intensities[1].getY() + lambda3
+								* intensities[2].getY()), col.getZ()
+						* (lambda1 * intensities[0].getZ() + lambda2
+								* intensities[1].getZ() + lambda3
+								* intensities[2].getZ()));
+				
+				// Interpolate z.
+				double pz = lambda1 * vertices[0].getZ() + lambda2 * vertices[1].getZ() + lambda3 * vertices[2].getZ();
+
 				// Draw into zBuffer.
 				zbuf.setPixel(xi, yi, pz, col);
 			}
-			
+
 			xi++;
 		}
 	}
