@@ -112,13 +112,4 @@ public class QuadMatrixf {
 				newm[i][j] = -m[i][j];
 		return new QuadMatrixf(newm);
 	}
-
-	public QuadMatrixf invert() {
-		assert (n == 2);
-
-		double invdet = 1 / (m[0][0] * m[1][1] - m[0][1] * m[1][0]);
-		return new QuadMatrixf(new double[][] {
-				{ m[1][1] * invdet, -m[0][1] * invdet },
-				{ -m[1][0] * invdet, m[0][0] * invdet } });
-	}
 }
