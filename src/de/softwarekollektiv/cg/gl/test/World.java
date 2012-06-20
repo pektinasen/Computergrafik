@@ -81,8 +81,8 @@ public class World implements GraphicObject {
 			f.add(new SimpleFace(a, b, c, m, t));
 		} else {
 			Vector3f d = a.add(b).scale(0.5);
-			partitionTriangle(depth - 1, a, d, c, m, t);
-			partitionTriangle(depth - 1, d, b, c, m, t);
+			partitionTriangle(depth - 1, c, a, d, m, t);
+			partitionTriangle(depth - 1, b, c, d, m, t);
 		}
 	}
 }
