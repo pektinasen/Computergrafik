@@ -20,30 +20,12 @@ public class SimpleGLTest extends JFrame {
 
 	private final ScenarioUno scene;
 	private final JPanel canvas;
+	private final Object lock = new Object();
 	private double alpha = 35;
 
 	SimpleGLTest() throws IOException {
 		scene = new ScenarioUno();
-		
-		new Thread(new Runnable() {
 
-			@Override
-			public void run() {
-				while(true) {
-					alpha += 10;
-					alpha %= 360;
-					scene.update(alpha);
-					canvas.repaint();
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-						return;
-					}
-				}
-			}
-			
-		}).start();
-		
 		final int width = 800;
 		final int height = 600;
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -52,11 +34,34 @@ public class SimpleGLTest extends JFrame {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				Renderer.render(g, width, height, scene);
+				synchronized (lock) {
+					Renderer.render(g, width, height, scene);
+				}
 			}
 		};
 		canvas.setSize(width, height);
 		this.add(canvas);
 		this.setVisible(true);
+
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				while (true) {
+					alpha += 10;
+					alpha %= 360;
+					synchronized (lock) {
+						scene.update(alpha);
+						canvas.repaint();
+					}
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						return;
+					}
+				}
+			}
+
+		}).start();
 	}
 }
