@@ -10,7 +10,7 @@ public class GLScene {
 	private Camera cam;
 	private Vector3f ambient_light;
 	private Vector3f phong_constants;
-	private boolean use_lightning;
+	private double max_face_size;
 	private Vector3f bgcol;
 	
 	private final List<GraphicObject> objs = new ArrayList<GraphicObject>();
@@ -53,8 +53,8 @@ public class GLScene {
 		lights.add(l);
 	}
 	
-	public void setUseLighting(boolean active) {
-		use_lightning = active;
+	public void setMaxFaceSize(double size) {
+		max_face_size = size;
 	}
 	
 	public void setAmbientLight(double r, double g, double b) {
@@ -111,10 +111,10 @@ public class GLScene {
 		return phong_constants;
 	}
 	
-	final boolean getUseLightning() {
-		return use_lightning;
+	final double getMaxFaceSize() {
+		return max_face_size;
 	}
-
+	
 	final Vector3f getBackgroundColor() {
 		return bgcol;
 	}

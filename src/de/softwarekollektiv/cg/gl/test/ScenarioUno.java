@@ -80,7 +80,7 @@ class ScenarioUno extends GLScene {
 		Camera cam = new Camera(0, 30, 10, 0.0, -1.0, 0.0, 0, 0, 1, 1, 60, 1, 100);
 		
 		// Define the scene.
-		this.setUseLighting(true);
+		this.setMaxFaceSize(1.0);
 		this.setAmbientLight(1.0, 1.0, 1.0);
 		this.addLight(light1);
 		this.addLight(light2);

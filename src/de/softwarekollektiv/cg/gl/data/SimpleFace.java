@@ -58,9 +58,9 @@ public class SimpleFace implements Face {
 	public final Material getMaterial() {
 		return m;
 	}
-
+	
 	@Override
-	public Vector3f getColor(double l1, double l2, double l3) {		
-		return t.getColor(l1, l2, l3);
+	public final Texture getTexture() {
+		return t;
 	}
 }

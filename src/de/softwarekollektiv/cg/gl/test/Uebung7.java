@@ -33,7 +33,6 @@ class Uebung7 extends GLScene {
 		// Define the scene.
 		this.setCamera(cam);
 		this.addGraphicObject(cube, cubem);
-		this.setUseLighting(true);
 		this.setAmbientLight(0.5, 0.5, 0.2);
 		this.addLight(new SimpleLight(75, 95, 15, 0.9, 0.9, 0.9));
 		this.addLight(new SimpleLight(-20, -30, 55, 0, 0.9, 0.9));

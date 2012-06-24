@@ -6,5 +6,5 @@ public interface Face {
 	public Vector3f getVertex(int vertex);
 	public Vector3f getNormal();
 	public Material getMaterial();
-	public Vector3f getColor(double lambda1, double lambda2, double lambda3);
+	public Texture getTexture();
 }
