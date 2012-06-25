@@ -16,7 +16,7 @@ public class Renderer {
 
 	public static void render(Graphics g, int width, int height, GLScene scene) {
 		assert (g != null && scene != null);
-		
+
 		// #####################
 		// Building the world.
 		// #####################
@@ -97,57 +97,93 @@ public class Renderer {
 			// Radiosity!
 
 			// Step 1: Calculate view factors between each 2 patches.
-			// Model: We always calculate the view factor between a vertex of
-			// a patch and the center of another patch, for each pair of patches
-			// and
-			// for each vertex in the patch.
-			// E.g., view_factors[i][j][k] contains the view factor between
-			// vertex k of
-			// patch i and the centroid of patch j.
-			double[][][] view_factors = new double[patches.size()][patches
-					.size()][3];
+			double[][] view_factors = new double[patches.size()][patches.size()];
 			for (int i = 0; i < patches.size(); i++) {
 				Patch Ai = patches.get(i);
 				for (int j = 0; j < patches.size(); j++) {
 					if (j == i) {
-						view_factors[i][j][0] = 0.0;
-						view_factors[i][j][1] = 0.0;
-						view_factors[i][j][2] = 0.0;
+						view_factors[i][j] = 0.0;
 						continue;
 					}
 
 					Patch Aj = patches.get(j);
 					double Ajs = triangle_size(Aj.vertices);
 
-					// Get triangle centroid.
+					// Get triangle centroids.
+					Vector3f p = Ai.vertices[0].add(Ai.vertices[1])
+							.add(Ai.vertices[2]).scale(1 / 3);
 					Vector3f q = Aj.vertices[0].add(Aj.vertices[1])
 							.add(Aj.vertices[2]).scale(1 / 3);
 
-					for (int k = 0; k < 3; k++) {
-						Vector3f p = Ai.vertices[k];
+					// Calculate cosinus alpha & beta.
+					Vector3f pq = q.subtract(p);
+					double cosalpha = Ai.normal.scalarProduct(pq) / pq.length();
+					Vector3f qp = p.subtract(q);
+					double cosbeta = Aj.normal.scalarProduct(qp) / qp.length();
 
-						// Calculate cosinus alpha & beta.
-						Vector3f pq = q.subtract(p);
-						double cosalpha = Ai.normal.scalarProduct(pq)
-								/ pq.length();
-						Vector3f qp = p.subtract(q);
-						double cosbeta = Aj.normal.scalarProduct(qp)
-								/ qp.length();
+					// Use approximation formula.
+					double r = pq.length();
+					double vf = cosalpha * cosbeta * Ajs / (Math.PI * r * r);
+					if (vf < 0 || vf > 1)
+						vf = 0;
+					view_factors[i][j] = vf;
 
-						// Use approximation formula.
-						double r = pq.length();
-						double vf = cosalpha * cosbeta * Ajs
-								/ (Math.PI * r * r);
-						if (vf < 0 || vf > 1)
-							vf = 0;
-						view_factors[i][j][k] = vf;
-					}
 				}
+			}
+
+			// Step 2: Iterativly solve global illumination equation.
+			// Bi = Ei + pi * SUMj(Fij * Bj) where
+			// - B{i,j} is the radiosity of patches i and j,
+			// - Ei is the light emission of patch i,
+			// - pi is the diffuse reflection coefficient of patch i,
+			// - Fij is the view factor between patch i and j
+			
+			// We use the shooting approach here, where the patch with the
+			// most remaining energy emits that energy. We continue to do this
+			// for #patches * 3 iterations.
+			// TODO allow configuration
+
+			double[][] Bs = new double[3][];
+			for (int col = 0; col < 3; col++) {
+				double[] B = new double[patches.size()];
+				double[] dB = new double[patches.size()];
+				
+				for (int p = 0; p < patches.size(); p++) {
+					B[p] = patches.get(p).face.getLight().get(col);
+					dB[p] = B[p];
+				}
+
+				for (int iteration = 0; iteration < patches.size() * 3; iteration++) {
+					int maxp = 0;
+					for (int p = 1; p < patches.size(); p++) {
+						if (dB[p] > dB[maxp])
+							maxp = p;
+					}
+
+					for (int p = 0; p < patches.size(); p++) {
+						double pj = patches.get(p).face.getMaterial()
+								.getDiffuseReflectionCoefficient().get(col);
+						double rad = dB[maxp] * pj * view_factors[p][maxp];
+						dB[p] += rad;
+						B[p] += rad;
+					}
+					B[maxp] = 0.0;
+				}
+				
+				Bs[col] = B;
+			}
+
+			// Step 3: Convert radiosity to intensities for rasterization.
+			for(int p = 0; p < patches.size(); p++) {
+				Vector3f intensity = new Vector3f(Bs[0][p], Bs[1][p], Bs[2][p]); 
+				patches.get(p).intensities[0] = intensity;
+				patches.get(p).intensities[1] = intensity;
+				patches.get(p).intensities[2] = intensity;
 			}
 
 		} else {
 
-			// Use simple Phong lightning. Hopefully, the user provided some
+			// Use simple Phong illumination. Hopefully, the user provided some
 			// light sources.
 
 			for (Patch patch : patches) {

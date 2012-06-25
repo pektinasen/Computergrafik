@@ -7,4 +7,5 @@ public interface Face {
 	public Vector3f getNormal();
 	public Material getMaterial();
 	public Texture getTexture();
+	public Vector3f getLight();
 }
