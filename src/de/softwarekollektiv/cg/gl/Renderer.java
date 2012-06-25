@@ -26,6 +26,9 @@ public class Renderer {
 		// Max face size: Partition faces until each
 		// face' size is at most mfs.
 		double mfs = scene.getMaxFaceSize();
+		
+		// All patches in the world.
+		List<Patch> patches = new ArrayList<Patch>();
 
 		for (int gidx = 0; gidx < scene.getNumObjects(); gidx++) {
 			GraphicObject obj = scene.getGraphicObject(gidx);
@@ -33,8 +36,6 @@ public class Renderer {
 
 			for (int faceId = 0; faceId < obj.size(); faceId++) {
 				Face f = obj.getFace(faceId);
-				Material m = f.getMaterial();
-				Texture t = f.getTexture();
 
 				// First transform normal vector to world coordinates.
 				Vector3f N = worldMatrix.mult(
@@ -49,75 +50,88 @@ public class Renderer {
 							.normalizeHomogeneous();
 
 				// Create patches in world coordinates.
-				List<Patch> patches;
-				{
-					// Using this matrices, we will later re-base the 
-					// barycentric coordinates (relative to the patch
-					// vertices) to the face base vertices.
-					final QuadMatrixf leftInverse = new QuadMatrixf(
-							new double[][] { { 0, 1, 0.5 }, { 0, 0, 0.5 },
-									{ 1, 0, 0 } });
-					final QuadMatrixf rightInverse = new QuadMatrixf(
-							new double[][] { { 0, 0, 0.5 }, { 1, 0, 0.5 },
-									{ 0, 1, 0 } });
+				
+				// Using this matrices, we will later re-base the 
+				// barycentric coordinates (relative to the patch
+				// vertices) to the face base vertices.
+				final QuadMatrixf leftInverse = new QuadMatrixf(
+						new double[][] { { 0, 1, 0.5 }, { 0, 0, 0.5 },
+								{ 1, 0, 0 } });
+				final QuadMatrixf rightInverse = new QuadMatrixf(
+						new double[][] { { 0, 0, 0.5 }, { 1, 0, 0.5 },
+								{ 0, 1, 0 } });
 
-					List<Patch> t1 = new ArrayList<Patch>();
-					List<Patch> t2 = new ArrayList<Patch>();
+				List<Patch> t1 = new ArrayList<Patch>();
+				List<Patch> t2 = new ArrayList<Patch>();
 
-					t1.add(new Patch(face_vertices, QuadMatrixf
-							.createIdentity(3)));
-					double cur_patch_size = triangle_size(face_vertices);
-					while (cur_patch_size > mfs) {
-						while (!t1.isEmpty()) {
-							Patch p = t1.remove(0);
-							Vector3f d = p.vertices[0].add(p.vertices[1])
-									.scale(0.5);
-							t2.add(new Patch(new Vector3f[] { p.vertices[2],
-									p.vertices[0], d }, p.inverse
-									.mult(leftInverse)));
-							t2.add(new Patch(new Vector3f[] { p.vertices[1],
-									p.vertices[2], d }, p.inverse
-									.mult(rightInverse)));
-						}
-
-						List<Patch> t3 = t1;
-						t1 = t2;
-						t2 = t3;
-						cur_patch_size /= 2;
+				t1.add(new Patch(face_vertices, QuadMatrixf.createIdentity(3), f, N));
+				double cur_patch_size = triangle_size(face_vertices);
+				while (cur_patch_size > mfs) {
+					while (!t1.isEmpty()) {
+						Patch p = t1.remove(0);
+						Vector3f d = p.vertices[0].add(p.vertices[1])
+								.scale(0.5);
+						t2.add(new Patch(new Vector3f[] { p.vertices[2],
+								p.vertices[0], d }, p.inverse.mult(leftInverse), f, N));
+						t2.add(new Patch(new Vector3f[] { p.vertices[1],
+								p.vertices[2], d }, p.inverse
+								.mult(rightInverse), f, N));
 					}
 
-					patches = t1;
+					List<Patch> t3 = t1;
+					t1 = t2;
+					t2 = t3;
+					cur_patch_size /= 2;
 				}
 
-				for (Patch patch : patches) {
-					
-					// Calculate patch light levels and transform to NDC.
-					for (int i = 0; i < 3; i++) {
-						Vector3f vertex = patch.vertices[i];
-
-						// Calculate light intensity in world coordinates.
-						patch.intensities[i] = PhongLightning.getIntensity(scene, f,
-								N, vertex);
-
-						// Transform vertex to NDC.
-						Vector4f vndc = ndcMatrix.mult(vertex
-								.getHomogeneousVector4f());
-
-						// Normalize homogeneous component.
-						Vector3f vndcCartesian = vndc.normalizeHomogeneous();
-
-						// View port.
-						patch.vertices[i] = new Vector3f(
-								((vndcCartesian.getX() + 1) * (width / 2)),
-								((vndcCartesian.getY() + 1) * (height / 2)),
-								vndcCartesian.getZ());
+				patches.addAll(t1);
+				
+			} // End of Faces loop.
+				
+				
+			// Calculate view factors between each 2 patches.
+			// Model: We always calculate the view factor between a vertex of
+			// a patch and the center of another patch, for each pair of patches and
+			// for each vertex in the patch.
+			// E.g., view_factors[i][j][k] contains the view factor between vertex k of
+			// patch i und the center of patch j.
+			/*
+			double[][][] view_factors = new double[patches.size()][patches.size()][3];
+			for(int i = 0; i < patches.size(); i++) {
+				for(int j = 0; j < patches.size(); j++) {
+					for(int k = 0; k < 3; k++) {
+						Vector3f p = patches.get()
 					}
+				}
+			}*/
+			
+			for (Patch patch : patches) {
+				
+				// Calculate patch light levels and transform to NDC.
+				for (int i = 0; i < 3; i++) {
+					Vector3f vertex = patch.vertices[i];
 
-					rasterPatch(patch, m, t, zbuf);
+					// Calculate light intensity in world coordinates.
+					patch.intensities[i] = PhongLightning.getIntensity(scene, patch.face, patch.normal, vertex);
 
-				} // Patch loop.
-			} // Faces loop.
-		} // GraphicObjects loop.
+					// Transform vertex to NDC.
+					Vector4f vndc = ndcMatrix.mult(vertex
+							.getHomogeneousVector4f());
+
+					// Normalize homogeneous component.
+					Vector3f vndcCartesian = vndc.normalizeHomogeneous();
+
+					// View port.
+					patch.vertices[i] = new Vector3f(
+							((vndcCartesian.getX() + 1) * (width / 2)),
+							((vndcCartesian.getY() + 1) * (height / 2)),
+							vndcCartesian.getZ());
+				}
+
+				rasterPatch(patch, zbuf);
+
+			} // End of Patch loop.
+		} // End of GraphicObjects loop.
 
 		// Smooth edges.
 		zbuf = zbuf.smooth();
@@ -135,15 +149,21 @@ public class Renderer {
 	}
 
 	private final static class Patch {
-		Patch(Vector3f[] vertices, QuadMatrixf inverse) {
+		Patch(Vector3f[] vertices, QuadMatrixf inverse, Face face, Vector3f normal) {
+			this.face = face;
+			this.normal = normal;
 			this.vertices = vertices;
 			this.intensities = new Vector3f[3];
 			this.inverse = inverse;
 		}
 
+		final Face face;
+		final Vector3f normal;
+		
 		final Vector3f[] vertices;
-		final Vector3f[] intensities;
 		final QuadMatrixf inverse;
+
+		final Vector3f[] intensities;
 	}
 
 	private static double triangle_size(Vector3f[] triangle) {
@@ -151,7 +171,7 @@ public class Renderer {
 				.vectorProduct(triangle[2].subtract(triangle[0])).length() / 2;
 	}
 
-	private static void rasterPatch(Patch p, Material m, Texture t, ZBuffer zbuf) {
+	private static void rasterPatch(Patch p, ZBuffer zbuf) {
 
 		// Prepare for barycentric coordinates.
 		QuadMatrixf Mb;
@@ -203,7 +223,7 @@ public class Renderer {
 
 		while (yi <= sorted[1].getY()) {
 
-			rasterLine(xl, xr, yi, Mb, p, m, t, zbuf);
+			rasterLine(xl, xr, yi, Mb, p, zbuf);
 
 			yi++;
 			xl += dxl;
@@ -225,7 +245,7 @@ public class Renderer {
 
 		while (yi <= sorted[2].getY()) {
 
-			rasterLine(xl, xr, yi, Mb, p, m, t, zbuf);
+			rasterLine(xl, xr, yi, Mb, p, zbuf);
 
 			yi++;
 			xl += dxl;
@@ -233,8 +253,8 @@ public class Renderer {
 		}
 	}
 
-	private static void rasterLine(double xl, double xr, int yi, QuadMatrixf Mb, 
-			Patch p, Material m, Texture t, ZBuffer zbuf) {
+	private static void rasterLine(double xl, double xr, int yi,
+			QuadMatrixf Mb, Patch p, ZBuffer zbuf) {
 		int xi = (int) Math.ceil(xl);
 		while (xi <= xr) {
 
@@ -260,7 +280,7 @@ public class Renderer {
 				double real_lambda3 = Lr.getZ();
 
 				// Get color of point.
-				Vector3f col = t.getColor(real_lambda1, real_lambda2,
+				Vector3f col = p.face.getTexture().getColor(real_lambda1, real_lambda2,
 						real_lambda3);
 
 				// Interpolate intensity.
