@@ -40,7 +40,7 @@ public class Renderer {
 				// First transform normal vector to world coordinates.
 				Vector3f N = worldMatrix.mult(
 						f.getNormal().getHomogeneousVector4f())
-						.normalizeHomogeneous();
+						.normalizeHomogeneous().normalize();
 
 				// Transform face to world coordinates.
 				Vector3f[] face_vertices = new Vector3f[3];
@@ -95,15 +95,41 @@ public class Renderer {
 			// for each vertex in the patch.
 			// E.g., view_factors[i][j][k] contains the view factor between vertex k of
 			// patch i und the center of patch j.
-			/*
 			double[][][] view_factors = new double[patches.size()][patches.size()][3];
 			for(int i = 0; i < patches.size(); i++) {
+				Patch Ai = patches.get(i);
 				for(int j = 0; j < patches.size(); j++) {
+					if(j == i) {
+						view_factors[i][j][0] = 0.0;
+						view_factors[i][j][1] = 0.0;
+						view_factors[i][j][2] = 0.0;
+						continue;
+					}
+					
+					Patch Aj = patches.get(j);
+					double Ajs = triangle_size(Aj.vertices);
+					
+					// Get triangle centroid.
+					Vector3f q = Aj.vertices[0].add(Aj.vertices[1]).add(Aj.vertices[2]).scale(1 / 3);
+					
 					for(int k = 0; k < 3; k++) {
-						Vector3f p = patches.get()
+						Vector3f p = Ai.vertices[k];
+						
+						// Calculate cosinus alpha & beta.
+						Vector3f pq = q.subtract(p);
+						double cosalpha = Ai.normal.scalarProduct(pq) / pq.length();
+						Vector3f qp = p.subtract(q);
+						double cosbeta = Aj.normal.scalarProduct(qp) / qp.length();
+						
+						// Use approximation formula.
+						double r = pq.length();
+						double vf = cosalpha * cosbeta * Ajs / (Math.PI * r * r);
+						if(vf < 0 || vf > 1)
+							vf = 0;
+						view_factors[i][j][k] = vf;
 					}
 				}
-			}*/
+			}
 			
 			for (Patch patch : patches) {
 				
