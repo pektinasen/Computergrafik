@@ -57,6 +57,23 @@ public final class Vector3f {
 		return new Vector3f(x / len, y / len, z / len);
 	}
 
+	/**
+	 * Get coordinate by row index.
+	 */
+	public double get(int col) {
+		assert(col >= 0 && col <= 2);
+		switch(col) {
+		case 0:
+			return x;
+		case 1:
+			return y;
+		case 2:
+			return z;
+		}
+		
+		throw new RuntimeException("Vector index out of bounds.");
+	}
+	
 	public double getX() {
 		return x;
 	}

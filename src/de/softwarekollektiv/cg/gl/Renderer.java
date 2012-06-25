@@ -1,9 +1,9 @@
 package de.softwarekollektiv.cg.gl;
 
-import java.awt.Color;
-import java.awt.Graphics;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 import de.softwarekollektiv.cg.gl.Face;
 import de.softwarekollektiv.cg.gl.math.QuadMatrixf;
@@ -11,11 +11,20 @@ import de.softwarekollektiv.cg.gl.math.Vector3f;
 import de.softwarekollektiv.cg.gl.math.Vector4f;
 
 public class Renderer {
-	public static void render(Graphics g, int width, int height, GLScene scene) {
-		assert (g != null && scene != null);
 
-		final QuadMatrixf ndcMatrix = scene.getCamera().getNDCMatrix();
-		ZBuffer zbuf = new ZBuffer(width, height, scene.getBackgroundColor());
+	public static ZBuffer render(int width, int height, GLScene scene) throws InterruptedException {
+		assert (scene != null);
+
+		// #####################
+		// Building the world.
+		// #####################
+
+		// Max face size: Partition faces until each
+		// face' size is at most mfs.
+		double mfs = scene.getMaxFaceSize();
+
+		// All patches in the world.
+		final List<Patch> patches = new ArrayList<Patch>();
 
 		for (int gidx = 0; gidx < scene.getNumObjects(); gidx++) {
 			GraphicObject obj = scene.getGraphicObject(gidx);
@@ -25,68 +34,298 @@ public class Renderer {
 				Face f = obj.getFace(faceId);
 
 				// First transform normal vector to world coordinates.
-				Vector3f N = worldMatrix.mult(
-						f.getNormal().getHomogeneousVector4f())
-						.normalizeHomogeneous();
+				Vector3f N = worldMatrix
+						.mult(f.getNormal().getHomogeneousVector4f())
+						.normalizeHomogeneous().normalize();
 
-				Vector3f[] vertices = new Vector3f[3];
-				Vector3f[] intensities = new Vector3f[3];
-				for (int i = 0; i < 3; i++) {
-					Vector3f v = f.getVertex(i);
+				// Transform face to world coordinates.
+				Vector3f[] face_vertices = new Vector3f[3];
+				for (int i = 0; i < 3; i++)
+					face_vertices[i] = worldMatrix.mult(
+							f.getVertex(i).getHomogeneousVector4f())
+							.normalizeHomogeneous();
 
-					// Transform to world coordinates.
-					Vector4f vworld = worldMatrix.mult(v
-							.getHomogeneousVector4f());
+				// Using this matrices, we will later re-base the
+				// barycentric coordinates (relative to the patch
+				// vertices) to the face base vertices.
+				final QuadMatrixf leftInverse = new QuadMatrixf(new double[][] {
+						{ 0, 1, 0.5 }, { 0, 0, 0.5 }, { 1, 0, 0 } });
+				final QuadMatrixf rightInverse = new QuadMatrixf(
+						new double[][] { { 0, 0, 0.5 }, { 1, 0, 0.5 },
+								{ 0, 1, 0 } });
 
-					// Calculate light intensity in world coordinates.
-					if (scene.getUseLightning())
-						intensities[i] = PhongLightning.getIntensity(scene, f,
-								N, vworld.normalizeHomogeneous());
-					else
-						intensities[i] = Vector3f.ONE;
+				// Create patches in world coordinates.
+				Patch initial_patch = new Patch(face_vertices,
+						QuadMatrixf.createIdentity(3), f, N);
 
-					// Transform vertex to NDC.
-					Vector4f vndc = ndcMatrix.mult(vworld);
+				List<Patch> t1 = new ArrayList<Patch>();
+				t1.add(initial_patch);
+				double cur_patch_size = initial_patch.size;
+				while (cur_patch_size > mfs) {
+					List<Patch> t2 = new ArrayList<Patch>();
+					while (!t1.isEmpty()) {
+						Patch p = t1.remove(0);
+						Vector3f d = p.vertices[0].add(p.vertices[1])
+								.scale(0.5);
+						t2.add(new Patch(new Vector3f[] { p.vertices[2],
+								p.vertices[0], d },
+								p.inverse.mult(leftInverse), f, N));
+						t2.add(new Patch(new Vector3f[] { p.vertices[1],
+								p.vertices[2], d }, p.inverse
+								.mult(rightInverse), f, N));
+					}
 
-					// Normalize homogeneous component.
-					Vector3f vndcCartesian = vndc.normalizeHomogeneous();
-
-					// View port.
-					vertices[i] = new Vector3f(
-							((vndcCartesian.getX() + 1) * (width / 2)),
-							((vndcCartesian.getY() + 1) * (height / 2)),
-							vndcCartesian.getZ());
+					t1 = t2;
+					cur_patch_size /= 2;
 				}
 
-				rasterTriangle(vertices, intensities, f, zbuf);
+				patches.addAll(t1);
 
-			} // Faces loop.
-		} // GraphicObjects loop.
+			} // End of Faces loop.
+		} // End of GraphicObjects loop.
+
+		// #######################
+		// Light.
+		// #######################
+
+		if (scene.getUseRadiosity()) {
+
+			// TODO remove
+			System.out.println("Enter radiosity!");
+			long now = System.currentTimeMillis();
+
+			// Radiosity!
+
+			// Step 1: Calculate view factors between each 2 patches.
+			// +++
+			// Step 2: Precalculate visibility matrix.
+			double[][] view_factors = new double[patches.size()][patches.size()];
+			boolean[][] visibility = new boolean[patches.size()][patches.size()];
+
+			for (int i = 0; i < patches.size(); i++) {
+				Patch Ai = patches.get(i);
+				for (int j = 0; j < patches.size(); j++) {
+					if (j == i) {
+						view_factors[i][j] = 0.0;
+						continue;
+					}
+
+					Patch Aj = patches.get(j);
+					double Ajs = triangle_size(Aj.vertices);
+
+					// Get triangle centroids.
+					Vector3f p = Ai.centroid;
+					Vector3f q = Aj.centroid; 
+							
+					// Calculate cosine alpha & beta.
+					Vector3f pq = q.subtract(p);
+					double cosalpha = Ai.normal.scalarProduct(pq) / pq.length();
+					Vector3f qp = p.subtract(q);
+					double cosbeta = Aj.normal.scalarProduct(qp) / qp.length();
+
+					// Use approximation formula.
+					double r = pq.length();
+					double vf = Math.abs(cosalpha) * Math.abs(cosbeta) * Ajs
+							/ (Math.PI * r * r);
+					view_factors[i][j] = (vf < 0 || vf > 1) ? 0.0 : vf;
+
+					// Visibilitity: Beware, this is O(n^3).
+					// Small optimization: Only calculate vis, if
+					// i is smaller than j.
+					if (i < j) {
+						boolean visible = true;
+						for (int k = 0; k < patches.size(); k++) {
+							if (k == i || k == j)
+								continue;
+
+							if (patches.get(k).intersect(p, q)) {
+								visible = false;
+								break;
+							}
+						}
+						visibility[i][j] = visible;
+					}
+				}
+			}		
+
+			// Step 3: Iteratively solve global illumination equation.
+			// Bi = Ei + pi * SUMj(Fij * Bj) where
+			// - B{i,j} is the radiosity of patches i and j,
+			// - Ei is the light emission of patch i,
+			// - pi is the diffuse reflection coefficient of patch i,
+			// - Fij is the view factor between patch i and j
+			double[][] Bs = new double[3][];
+			for (int color = 0; color < 3; color++) {
+
+				// Gathering approach.
+				double[] B = new double[patches.size()];
+				for (int p = 0; p < patches.size(); p++)
+					B[p] = patches.get(p).face.getLight().get(color);
+
+				for (int iteration = 0; iteration < scene
+						.getRadiosityIterations(); iteration++) {
+					double[] Bn = new double[patches.size()];
+					for (int p = 0; p < patches.size(); p++) {
+						Bn[p] = patches.get(p).face.getLight().get(color);
+						for (int p2 = 0; p2 < patches.size(); p2++) {
+							double pj = patches.get(p2).face.getMaterial()
+									.getDiffuseReflectionCoefficient()
+									.get(color);
+
+							// Only transfer light if patches see each other.
+							if ((p < p2 && visibility[p][p2])
+									|| (p2 < p && visibility[p2][p]))
+								Bn[p] += pj * view_factors[p][p2] * B[p2];
+						}
+					}
+					B = Bn;
+				}
+
+				Bs[color] = B;
+			}
+
+			// Step 4: Convert radiosity to intensities for rasterization.
+			for (int p = 0; p < patches.size(); p++) {
+				Vector3f intensity = new Vector3f(Bs[0][p], Bs[1][p], Bs[2][p]);
+				patches.get(p).intensities[0] = intensity;
+				patches.get(p).intensities[1] = intensity;
+				patches.get(p).intensities[2] = intensity;
+			}
+
+			// TODO remove
+			System.out.println("Leaving radiosity after "
+					+ (System.currentTimeMillis() - now) + "ms !");
+
+		} else {
+
+			// Use simple Phong illumination. Hopefully, the user provided some
+			// light sources.
+
+			for (Patch patch : patches) {
+				for (int i = 0; i < 3; i++) {
+					// Calculate light intensity.
+					patch.intensities[i] = PhongLightning.getIntensity(scene,
+							patch.face, patch.normal, patch.vertices[i]);
+				}
+			}
+		}
+
+		// #########################
+		// Rasterization.
+		// #########################
+
+		// z-Buffer for view obstruction detection.
+		ZBuffer zbuf = new ZBuffer(width, height, scene.getBackgroundColor(),
+				scene.getLightness());
+
+		// Matrix: World coordinates -> NDC.
+		final QuadMatrixf ndcMatrix = scene.getCamera().getNDCMatrix();
+
+		for (Patch patch : patches) {
+
+			// Transform to NDC.
+			for (int i = 0; i < 3; i++) {
+
+				// Transform vertex to NDC.
+				Vector4f vndc = ndcMatrix.mult(patch.vertices[i]
+						.getHomogeneousVector4f());
+
+				// Normalize homogeneous component.
+				Vector3f vndcCartesian = vndc.normalizeHomogeneous();
+
+				// View port.
+				patch.vertices[i] = new Vector3f(
+						((vndcCartesian.getX() + 1) * (width / 2)),
+						((vndcCartesian.getY() + 1) * (height / 2)),
+						vndcCartesian.getZ());
+			}
+
+			rasterPatch(patch, zbuf);
+
+		} // End of Patch loop.
+
+		// ##########################
+		// Antialiasing.
+		// ##########################
 
 		// Smooth edges.
 		zbuf = zbuf.smooth();
 
-		// Flip screen.
-		for (int x = 0; x < width; x++) {
-			for (int y = 0; y < height; y++) {
-				Vector3f pixel = zbuf.getPixel(x, y);
-				Color col = new Color((float) pixel.getX(),
-						(float) pixel.getY(), (float) pixel.getZ());
-				g.setColor(col);
-				g.drawRect(width - x, height - y, 1, 1);
+		return zbuf;
+	}
+
+	private final static class Patch {
+		Patch(Vector3f[] vertices, QuadMatrixf inverse, Face face,
+				Vector3f normal) {
+			this.face = face;
+			this.normal = normal;
+			this.vertices = vertices;
+			this.inverse = inverse;
+			this.size = triangle_size(vertices);
+			this.centroid = vertices[0].add(vertices[1]).add(vertices[2]).scale(1.0 / 3);
+			this.intensities = new Vector3f[3];
+		}
+
+		final Face face;
+		final Vector3f normal;
+		final Vector3f centroid;
+		final double size;
+		final QuadMatrixf inverse;
+
+		// NOTE: vertices & intensities are changed within the
+		// rendering pipeline. 'size' is only accurate in world
+		// coordinates (i.e., after initialization), same for
+		// 'centroid'.
+		Vector3f[] vertices;
+		Vector3f[] intensities;
+
+		boolean intersect(Vector3f p, Vector3f q) {
+			Vector3f pq = q.subtract(p);
+			double dp = normal.scalarProduct(pq);
+			if (dp < 0) {
+				// Find intersection with triangle plane.
+				double t = -normal.scalarProduct(p.subtract(vertices[0])) / dp;
+				if (t >= 0) {
+					Vector3f isect = p.add(pq.scale(t));
+
+					if (check_orientation(vertices[0], vertices[1], isect,
+							normal)
+							&& check_orientation(vertices[1], vertices[2],
+									isect, normal)
+							&& check_orientation(vertices[2], vertices[0],
+									isect, normal)) {
+						return true;
+					}
+				}
 			}
+
+			return false;
+		}
+
+		private static boolean check_orientation(Vector3f a, Vector3f b,
+				Vector3f c, Vector3f n) {
+			Vector3f abcn = b.subtract(a).vectorProduct(c.subtract(a));
+			double dp = n.scalarProduct(abcn);
+			if (dp < 0)
+				return false;
+			else
+				return true;
 		}
 	}
 
-	private static void rasterTriangle(Vector3f[] vertices,
-			Vector3f[] intensities, Face face, ZBuffer zbuf) {
+	private static double triangle_size(Vector3f[] triangle) {
+		return triangle[1].subtract(triangle[0])
+				.vectorProduct(triangle[2].subtract(triangle[0])).length() / 2;
+	}
+
+	private static void rasterPatch(Patch p, ZBuffer zbuf) {
 
 		// Prepare for barycentric coordinates.
 		QuadMatrixf Mb;
 		{
-			Vector3f A = vertices[0];
-			Vector3f B = vertices[1];
-			Vector3f C = vertices[2];
+			Vector3f A = p.vertices[0];
+			Vector3f B = p.vertices[1];
+			Vector3f C = p.vertices[2];
 
 			double fac = 1 / (A.getX() * (B.getY() - C.getY()) + B.getX()
 					* (C.getY() - A.getY()) + C.getX() * (A.getY() - B.getY()));
@@ -101,7 +340,7 @@ public class Renderer {
 		}
 
 		// Sort.
-		Vector3f[] sorted = Arrays.copyOf(vertices, 3);
+		Vector3f[] sorted = Arrays.copyOf(p.vertices, 3);
 		Arrays.sort(sorted, new Comparator<Vector3f>() {
 			public int compare(Vector3f arg0, Vector3f arg1) {
 				return (arg0.getY() < arg1.getY() ? -1 : ((arg0.getY() > arg1
@@ -131,7 +370,7 @@ public class Renderer {
 
 		while (yi <= sorted[1].getY()) {
 
-			rasterLine(xl, xr, yi, vertices, intensities, Mb, face, zbuf);
+			rasterLine(xl, xr, yi, Mb, p, zbuf);
 
 			yi++;
 			xl += dxl;
@@ -153,18 +392,16 @@ public class Renderer {
 
 		while (yi <= sorted[2].getY()) {
 
-			rasterLine(xl, xr, yi, vertices, intensities, Mb, face, zbuf);
+			rasterLine(xl, xr, yi, Mb, p, zbuf);
 
 			yi++;
 			xl += dxl;
 			xr += dxr;
 		}
-
 	}
 
 	private static void rasterLine(double xl, double xr, int yi,
-			Vector3f[] vertices, Vector3f[] intensities, QuadMatrixf Mb,
-			Face face, ZBuffer zbuf) {
+			QuadMatrixf Mb, Patch p, ZBuffer zbuf) {
 		int xi = (int) Math.ceil(xl);
 		while (xi <= xr) {
 
@@ -178,31 +415,34 @@ public class Renderer {
 			// Only draw points in triangle.
 			if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0) {
 
-				// Interpolate z.
-				double pz = lambda1 * vertices[0].getZ() + lambda2
-						* vertices[1].getZ() + lambda3 * vertices[2].getZ();
+				// Interpolate z with barycentric coordinates relative
+				// to patch vertices.
+				double pz = lambda1 * p.vertices[0].getZ() + lambda2
+						* p.vertices[1].getZ() + lambda3 * p.vertices[2].getZ();
+
+				// Barycentric coordinates relative to face vertices.
+				Vector3f Lr = p.inverse.mult(L);
+				double real_lambda1 = Lr.getX();
+				double real_lambda2 = Lr.getY();
+				double real_lambda3 = Lr.getZ();
 
 				// Get color of point.
-				Vector3f col = face.getColor(lambda1, lambda2, lambda3);
-				
+				Vector3f col = p.face.getTexture().getColor(real_lambda1,
+						real_lambda2, real_lambda3);
+
 				// Interpolate intensity.
 				double r = col.getX()
-						* (lambda1 * intensities[0].getX() + lambda2
-								* intensities[1].getX() + lambda3
-								* intensities[2].getX());
+						* (lambda1 * p.intensities[0].getX() + lambda2
+								* p.intensities[1].getX() + lambda3
+								* p.intensities[2].getX());
 				double g = col.getY()
-						* (lambda1 * intensities[0].getY() + lambda2
-								* intensities[1].getY() + lambda3
-								* intensities[2].getY());
+						* (lambda1 * p.intensities[0].getY() + lambda2
+								* p.intensities[1].getY() + lambda3
+								* p.intensities[2].getY());
 				double b = col.getZ()
-						* (lambda1 * intensities[0].getZ() + lambda2
-								* intensities[1].getZ() + lambda3
-								* intensities[2].getZ());
-
-				// Cut off colors.
-				r = (r > 1.0) ? 1.0 : ((r < 0.0) ? 0.0 : r);
-				g = (g > 1.0) ? 1.0 : ((g < 0.0) ? 0.0 : g);
-				b = (b > 1.0) ? 1.0 : ((b < 0.0) ? 0.0 : b);
+						* (lambda1 * p.intensities[0].getZ() + lambda2
+								* p.intensities[1].getZ() + lambda3
+								* p.intensities[2].getZ());
 				Vector3f color = new Vector3f(r, g, b);
 
 				// Draw into zBuffer.

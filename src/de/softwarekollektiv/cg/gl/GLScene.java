@@ -9,9 +9,12 @@ import de.softwarekollektiv.cg.gl.math.Vector3f;
 public class GLScene {
 	private Camera cam;
 	private Vector3f ambient_light;
+	private double lightness;
 	private Vector3f phong_constants;
-	private boolean use_lightning;
+	private double max_face_size;
 	private Vector3f bgcol;
+	private boolean use_radiosity;
+	private int radiosity_iterations;
 	
 	private final List<GraphicObject> objs = new ArrayList<GraphicObject>();
 	private final List<QuadMatrixf> transm = new ArrayList<QuadMatrixf>();
@@ -21,8 +24,10 @@ public class GLScene {
 		// Set stupid phong constants to sane values.
 		phong_constants = new Vector3f(0.01, 0.001, 0.00001);
 		
-		// Default to BLACK background.
+		// Defaults.
 		bgcol = Vector3f.ZERO;
+		radiosity_iterations = 5;
+		lightness = 0.75;
 	}
 	
 	// #######################
@@ -53,16 +58,28 @@ public class GLScene {
 		lights.add(l);
 	}
 	
-	public void setUseLighting(boolean active) {
-		use_lightning = active;
+	public void setMaxFaceSize(double size) {
+		max_face_size = size;
 	}
 	
 	public void setAmbientLight(double r, double g, double b) {
 		ambient_light = new Vector3f(r, g, b);
 	}
 	
+	public void setLightness(double l) {
+		lightness = l;
+	}
+	
 	public void setBackgroundColor(Vector3f color) {
 		bgcol = color;
+	}
+	
+	public void setUseRadiosity(boolean active) {
+		use_radiosity = active;
+	}
+	
+	public void setRadiosityIterations(int iterations) {
+		radiosity_iterations = iterations;
 	}
 	
 	// #######################
@@ -107,15 +124,27 @@ public class GLScene {
 		return ambient_light;
 	}
 	
+	final double getLightness() {
+		return lightness;
+	}
+	
 	final Vector3f getPhongConstants() {
 		return phong_constants;
 	}
 	
-	final boolean getUseLightning() {
-		return use_lightning;
+	final double getMaxFaceSize() {
+		return max_face_size;
 	}
-
+	
 	final Vector3f getBackgroundColor() {
 		return bgcol;
+	}
+	
+	final boolean getUseRadiosity() {
+		return use_radiosity;
+	}
+
+	int getRadiosityIterations() {
+		return radiosity_iterations;
 	}
 }

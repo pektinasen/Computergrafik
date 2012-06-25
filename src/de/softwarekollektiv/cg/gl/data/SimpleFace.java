@@ -16,7 +16,12 @@ public class SimpleFace implements Face {
 	private final Material m;
 	private final Texture t;
 	private final Vector3f n;
+	private final Vector3f light;
 		
+	public SimpleFace(final Vector3f a, final Vector3f b, final Vector3f c, Material m, Texture t) {
+		this(a, b, c, m, t, Vector3f.ZERO);
+	}
+	
 	/**
 	 * Construct a SimpleFace.
 	 * 
@@ -26,8 +31,11 @@ public class SimpleFace implements Face {
 	 * @param a vertex a
 	 * @param b vertex b
 	 * @param c vertex c
+	 * @param m material constants
+	 * @param t texture
+	 * @param light light emission (can be null)
 	 */
-	public SimpleFace(final Vector3f a, final Vector3f b, final Vector3f c, Material m, Texture t) {
+	public SimpleFace(final Vector3f a, final Vector3f b, final Vector3f c, Material m, Texture t, Vector3f light) {
 		assert(a != null && b != null && c != null && m != null);
 		
 		this.v[0] = a;
@@ -40,6 +48,11 @@ public class SimpleFace implements Face {
 		final Vector3f ba = b.subtract(a);
 		final Vector3f ca = c.subtract(a);
 		this.n = ba.vectorProduct(ca).normalize();
+		
+		if(light == null)
+			this.light = Vector3f.ZERO;
+		else
+			this.light = light;
 	}
 	
 	@Override
@@ -58,9 +71,14 @@ public class SimpleFace implements Face {
 	public final Material getMaterial() {
 		return m;
 	}
+	
+	@Override
+	public final Texture getTexture() {
+		return t;
+	}
 
 	@Override
-	public Vector3f getColor(double l1, double l2, double l3) {		
-		return t.getColor(l1, l2, l3);
+	public Vector3f getLight() {
+		return light;
 	}
 }
