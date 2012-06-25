@@ -107,9 +107,9 @@ public class Renderer {
 
 					// Get triangle centroids.
 					Vector3f p = Ai.vertices[0].add(Ai.vertices[1])
-							.add(Ai.vertices[2]).scale(1 / 3);
+							.add(Ai.vertices[2]).scale(1.0 / 3);
 					Vector3f q = Aj.vertices[0].add(Aj.vertices[1])
-							.add(Aj.vertices[2]).scale(1 / 3);
+							.add(Aj.vertices[2]).scale(1.0 / 3);
 
 					// Calculate cosinus alpha & beta.
 					Vector3f pq = q.subtract(p);
@@ -123,7 +123,6 @@ public class Renderer {
 					if (vf < 0 || vf > 1)
 						vf = 0;
 					view_factors[i][j] = vf;
-
 				}
 			}
 
@@ -149,7 +148,7 @@ public class Renderer {
 					dB[p] = B[p];
 				}
 
-				for (int iteration = 0; iteration < patches.size() * 3; iteration++) {
+				for (int iteration = 0; iteration < patches.size() * 5; iteration++) {
 					int maxp = 0;
 					for (int p = 1; p < patches.size(); p++) {
 						if (dB[p] > dB[maxp])
