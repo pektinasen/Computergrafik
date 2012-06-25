@@ -47,8 +47,6 @@ public class Renderer {
 							f.getVertex(i).getHomogeneousVector4f())
 							.normalizeHomogeneous();
 
-				// Create patches in world coordinates.
-
 				// Using this matrices, we will later re-base the
 				// barycentric coordinates (relative to the patch
 				// vertices) to the face base vertices.
@@ -58,13 +56,13 @@ public class Renderer {
 						new double[][] { { 0, 0, 0.5 }, { 1, 0, 0.5 },
 								{ 0, 1, 0 } });
 
+				// Create patches in world coordinates.
 				List<Patch> t1 = new ArrayList<Patch>();
-				List<Patch> t2 = new ArrayList<Patch>();
-
 				t1.add(new Patch(face_vertices, QuadMatrixf.createIdentity(3),
 						f, N));
 				double cur_patch_size = triangle_size(face_vertices);
 				while (cur_patch_size > mfs) {
+					List<Patch> t2 = new ArrayList<Patch>();
 					while (!t1.isEmpty()) {
 						Patch p = t1.remove(0);
 						Vector3f d = p.vertices[0].add(p.vertices[1])
@@ -77,9 +75,7 @@ public class Renderer {
 								.mult(rightInverse), f, N));
 					}
 
-					List<Patch> t3 = t1;
 					t1 = t2;
-					t2 = t3;
 					cur_patch_size /= 2;
 				}
 
