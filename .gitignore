@@ -1,5 +1,6 @@
 CG*.pdf
 *.lyx~
 bin
-lib/jogamp-all-platforms
 *uebung*.pdf
+lib/jogamp-all-platforms
+lib/jogl-1.1.1-linux-amd64

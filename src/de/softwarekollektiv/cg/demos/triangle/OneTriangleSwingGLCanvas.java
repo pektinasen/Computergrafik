@@ -1,10 +1,9 @@
 package de.softwarekollektiv.cg.demos.triangle;
 
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCanvas;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 
 import java.awt.BorderLayout;
@@ -18,21 +17,15 @@ import java.awt.event.WindowEvent;
  */
 public class OneTriangleSwingGLCanvas {
 
-    static {
-        // setting this true causes window events not to get sent on Linux if you run from inside Eclipse
-        GLProfile.initSingleton( false );
-    }
-
     public static void main( String [] args ) {
-        GLProfile glprofile = GLProfile.getDefault();
-        GLCapabilities glcapabilities = new GLCapabilities( glprofile );
+        GLCapabilities glcapabilities = new GLCapabilities();
         final GLCanvas glcanvas = new GLCanvas( glcapabilities );
 
         glcanvas.addGLEventListener( new GLEventListener() {
             
             @Override
             public void reshape( GLAutoDrawable glautodrawable, int x, int y, int width, int height ) {
-                OneTriangle.setup( glautodrawable.getGL().getGL2(), width, height );
+                OneTriangle.setup( glautodrawable.getGL(), width, height );
             }
             
             @Override
@@ -40,13 +33,14 @@ public class OneTriangleSwingGLCanvas {
             }
             
             @Override
-            public void dispose( GLAutoDrawable glautodrawable ) {
-            }
-            
-            @Override
             public void display( GLAutoDrawable glautodrawable ) {
-                OneTriangle.render( glautodrawable.getGL().getGL2(), glautodrawable.getWidth(), glautodrawable.getHeight() );
+                OneTriangle.render( glautodrawable.getGL(), glautodrawable.getWidth(), glautodrawable.getHeight() );
             }
+
+			@Override
+			public void displayChanged(GLAutoDrawable arg0, boolean arg1,
+					boolean arg2) {				
+			}
         });
 
         final JFrame jframe = new JFrame( "One Triangle Swing GLCanvas" ); 
