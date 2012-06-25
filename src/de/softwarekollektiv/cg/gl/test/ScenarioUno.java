@@ -70,7 +70,6 @@ class ScenarioUno extends GLScene {
 		
 		// Object 2: The Cube.
 		cube = new Cube();
-
 		
 		// Lights.
 		Light light1 = new SimpleLight(-9.5, -9.5, 0.5, 1.0, 0.0, 0.0);
@@ -81,6 +80,7 @@ class ScenarioUno extends GLScene {
 		
 		// Define the scene.
 		this.setMaxFaceSize(1.0);
+		this.setUseRadiosity(false);
 		this.setAmbientLight(1.0, 1.0, 1.0);
 		this.addLight(light1);
 		this.addLight(light2);

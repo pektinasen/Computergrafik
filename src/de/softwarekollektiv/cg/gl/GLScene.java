@@ -12,10 +12,12 @@ public class GLScene {
 	private Vector3f phong_constants;
 	private double max_face_size;
 	private Vector3f bgcol;
+	private boolean use_radiosity;
 	
 	private final List<GraphicObject> objs = new ArrayList<GraphicObject>();
 	private final List<QuadMatrixf> transm = new ArrayList<QuadMatrixf>();
 	private final List<Light> lights = new ArrayList<Light>();
+
 	
 	public GLScene() {
 		// Set stupid phong constants to sane values.
@@ -63,6 +65,10 @@ public class GLScene {
 	
 	public void setBackgroundColor(Vector3f color) {
 		bgcol = color;
+	}
+	
+	public void setUseRadiosity(boolean active) {
+		use_radiosity = active;
 	}
 	
 	// #######################
@@ -117,5 +123,9 @@ public class GLScene {
 	
 	final Vector3f getBackgroundColor() {
 		return bgcol;
+	}
+	
+	final boolean getUseRadiosity() {
+		return use_radiosity;
 	}
 }
