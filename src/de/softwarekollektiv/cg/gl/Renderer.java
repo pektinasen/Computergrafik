@@ -12,7 +12,7 @@ import de.softwarekollektiv.cg.gl.math.Vector4f;
 
 public class Renderer {
 
-	public static ZBuffer render(int width, int height, GLScene scene) {
+	public static ZBuffer render(int width, int height, GLScene scene) throws InterruptedException {
 		assert (scene != null);
 
 		// #####################
@@ -24,7 +24,7 @@ public class Renderer {
 		double mfs = scene.getMaxFaceSize();
 
 		// All patches in the world.
-		List<Patch> patches = new ArrayList<Patch>();
+		final List<Patch> patches = new ArrayList<Patch>();
 
 		for (int gidx = 0; gidx < scene.getNumObjects(); gidx++) {
 			GraphicObject obj = scene.getGraphicObject(gidx);
@@ -89,11 +89,11 @@ public class Renderer {
 		// #######################
 
 		if (scene.getUseRadiosity()) {
-			
+
 			// TODO remove
 			System.out.println("Enter radiosity!");
 			long now = System.currentTimeMillis();
-			
+
 			// Radiosity!
 
 			// Step 1: Calculate view factors between each 2 patches.
@@ -101,6 +101,7 @@ public class Renderer {
 			// Step 2: Precalculate visibility matrix.
 			double[][] view_factors = new double[patches.size()][patches.size()];
 			boolean[][] visibility = new boolean[patches.size()][patches.size()];
+
 			for (int i = 0; i < patches.size(); i++) {
 				Patch Ai = patches.get(i);
 				for (int j = 0; j < patches.size(); j++) {
@@ -113,12 +114,10 @@ public class Renderer {
 					double Ajs = triangle_size(Aj.vertices);
 
 					// Get triangle centroids.
-					Vector3f p = Ai.vertices[0].add(Ai.vertices[1])
-							.add(Ai.vertices[2]).scale(1.0 / 3);
-					Vector3f q = Aj.vertices[0].add(Aj.vertices[1])
-							.add(Aj.vertices[2]).scale(1.0 / 3);
-
-					// Calculate cosinus alpha & beta.
+					Vector3f p = Ai.centroid;
+					Vector3f q = Aj.centroid; 
+							
+					// Calculate cosine alpha & beta.
 					Vector3f pq = q.subtract(p);
 					double cosalpha = Ai.normal.scalarProduct(pq) / pq.length();
 					Vector3f qp = p.subtract(q);
@@ -128,11 +127,7 @@ public class Renderer {
 					double r = pq.length();
 					double vf = Math.abs(cosalpha) * Math.abs(cosbeta) * Ajs
 							/ (Math.PI * r * r);
-					if (vf < 0 || vf > 1) {
-						System.out.println("oo");
-						vf = 0;
-					}
-					view_factors[i][j] = vf;
+					view_factors[i][j] = (vf < 0 || vf > 1) ? 0.0 : vf;
 
 					// Visibilitity: Beware, this is O(n^3).
 					// Small optimization: Only calculate vis, if
@@ -143,8 +138,7 @@ public class Renderer {
 							if (k == i || k == j)
 								continue;
 
-							if (triangle_line_intersect(
-									patches.get(k).vertices, p, q)) {
+							if (patches.get(k).intersect(p, q)) {
 								visible = false;
 								break;
 							}
@@ -152,7 +146,7 @@ public class Renderer {
 						visibility[i][j] = visible;
 					}
 				}
-			}
+			}		
 
 			// Step 3: Iteratively solve global illumination equation.
 			// Bi = Ei + pi * SUMj(Fij * Bj) where
@@ -161,31 +155,33 @@ public class Renderer {
 			// - pi is the diffuse reflection coefficient of patch i,
 			// - Fij is the view factor between patch i and j
 			double[][] Bs = new double[3][];
-			for (int col = 0; col < 3; col++) {
+			for (int color = 0; color < 3; color++) {
 
 				// Gathering approach.
 				double[] B = new double[patches.size()];
-				for (int p = 0; p < patches.size(); p++) 
-					B[p] = patches.get(p).face.getLight().get(col);
-				
-				for (int iteration = 0; iteration < scene.getRadiosityIterations(); iteration++) {
+				for (int p = 0; p < patches.size(); p++)
+					B[p] = patches.get(p).face.getLight().get(color);
+
+				for (int iteration = 0; iteration < scene
+						.getRadiosityIterations(); iteration++) {
 					double[] Bn = new double[patches.size()];
 					for (int p = 0; p < patches.size(); p++) {
-						Bn[p] = patches.get(p).face.getLight().get(col);
+						Bn[p] = patches.get(p).face.getLight().get(color);
 						for (int p2 = 0; p2 < patches.size(); p2++) {
 							double pj = patches.get(p2).face.getMaterial()
-									.getDiffuseReflectionCoefficient().get(col);
+									.getDiffuseReflectionCoefficient()
+									.get(color);
 
 							// Only transfer light if patches see each other.
 							if ((p < p2 && visibility[p][p2])
-									|| (p2 < p && visibility[p2][p2]))
+									|| (p2 < p && visibility[p2][p]))
 								Bn[p] += pj * view_factors[p][p2] * B[p2];
 						}
 					}
 					B = Bn;
 				}
 
-				Bs[col] = B;
+				Bs[color] = B;
 			}
 
 			// Step 4: Convert radiosity to intensities for rasterization.
@@ -195,9 +191,10 @@ public class Renderer {
 				patches.get(p).intensities[1] = intensity;
 				patches.get(p).intensities[2] = intensity;
 			}
-			
+
 			// TODO remove
-			System.out.println("Leaving radiosity after " + (System.currentTimeMillis() - now) +  "ms !");
+			System.out.println("Leaving radiosity after "
+					+ (System.currentTimeMillis() - now) + "ms !");
 
 		} else {
 
@@ -218,7 +215,8 @@ public class Renderer {
 		// #########################
 
 		// z-Buffer for view obstruction detection.
-		ZBuffer zbuf = new ZBuffer(width, height, scene.getBackgroundColor(), scene.getLightness());
+		ZBuffer zbuf = new ZBuffer(width, height, scene.getBackgroundColor(),
+				scene.getLightness());
 
 		// Matrix: World coordinates -> NDC.
 		final QuadMatrixf ndcMatrix = scene.getCamera().getNDCMatrix();
@@ -264,19 +262,55 @@ public class Renderer {
 			this.vertices = vertices;
 			this.inverse = inverse;
 			this.size = triangle_size(vertices);
+			this.centroid = vertices[0].add(vertices[1]).add(vertices[2]).scale(1.0 / 3);
 			this.intensities = new Vector3f[3];
 		}
 
 		final Face face;
 		final Vector3f normal;
+		final Vector3f centroid;
 		final double size;
 		final QuadMatrixf inverse;
 
 		// NOTE: vertices & intensities are changed within the
 		// rendering pipeline. 'size' is only accurate in world
-		// coordinates (i.e., after initialization).
+		// coordinates (i.e., after initialization), same for
+		// 'centroid'.
 		Vector3f[] vertices;
 		Vector3f[] intensities;
+
+		boolean intersect(Vector3f p, Vector3f q) {
+			Vector3f pq = q.subtract(p);
+			double dp = normal.scalarProduct(pq);
+			if (dp < 0) {
+				// Find intersection with triangle plane.
+				double t = -normal.scalarProduct(p.subtract(vertices[0])) / dp;
+				if (t >= 0) {
+					Vector3f isect = p.add(pq.scale(t));
+
+					if (check_orientation(vertices[0], vertices[1], isect,
+							normal)
+							&& check_orientation(vertices[1], vertices[2],
+									isect, normal)
+							&& check_orientation(vertices[2], vertices[0],
+									isect, normal)) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		private static boolean check_orientation(Vector3f a, Vector3f b,
+				Vector3f c, Vector3f n) {
+			Vector3f abcn = b.subtract(a).vectorProduct(c.subtract(a));
+			double dp = n.scalarProduct(abcn);
+			if (dp < 0)
+				return false;
+			else
+				return true;
+		}
 	}
 
 	private static double triangle_size(Vector3f[] triangle) {
@@ -284,13 +318,8 @@ public class Renderer {
 				.vectorProduct(triangle[2].subtract(triangle[0])).length() / 2;
 	}
 
-	private static boolean triangle_line_intersect(Vector3f[] triangle,
-			Vector3f p, Vector3f q) {
-		return false;
-	}
-
 	private static void rasterPatch(Patch p, ZBuffer zbuf) {
-	
+
 		// Prepare for barycentric coordinates.
 		QuadMatrixf Mb;
 		{
@@ -414,7 +443,7 @@ public class Renderer {
 						* (lambda1 * p.intensities[0].getZ() + lambda2
 								* p.intensities[1].getZ() + lambda3
 								* p.intensities[2].getZ());
-				Vector3f color = new Vector3f(r, g, b);			
+				Vector3f color = new Vector3f(r, g, b);
 
 				// Draw into zBuffer.
 				zbuf.setPixel(xi, yi, pz, color);

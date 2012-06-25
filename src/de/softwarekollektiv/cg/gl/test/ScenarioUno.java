@@ -20,10 +20,10 @@ class ScenarioUno extends GLScene {
 		double radalpha = Math.toRadians(alpha);
 		QuadMatrixf cubeM = new QuadMatrixf(new double[][] { // Translate/Scale.
 				{
-					3, 0, 0, -5
+					3, 0, 0, -4.5
 				},
 				{
-					0, 3, 0, 0
+					0, 3, 0, -2
 				},
 				{
 					0, 0, 3, 4
@@ -80,9 +80,9 @@ class ScenarioUno extends GLScene {
 		Camera cam = new Camera(0, 30, 10, 0.0, -1.0, 0.0, 0, 0, 1, 1, 60, 1, 100);
 		
 		// Define the scene.
-		this.setMaxFaceSize(1.0);
+		this.setMaxFaceSize(2.0);
 		this.setUseRadiosity(true);
-		this.setAmbientLight(1.0, 1.0, 1.0);
+//		this.setAmbientLight(1.0, 1.0, 1.0);
 //		this.addLight(light1);
 //		this.addLight(light2);
 		this.setCamera(cam);

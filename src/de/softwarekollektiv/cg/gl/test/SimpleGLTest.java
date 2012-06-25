@@ -50,17 +50,23 @@ public class SimpleGLTest extends JFrame {
 		this.setVisible(true);
 
 		new Thread(new Runnable() {
-			private double fps = 1.0 / 60;
-		    private int maxms = (int) (1000 / fps);
+			private double fpm = 1.0 / 4.0;
 			
 			@Override
 			public void run() {
-				System.out.println("Animating... (at " + fps + "fps)");
+				System.out.println("Animating at " + fpm + " frames per minute.");
 				while (true) {				
 					long startms = System.currentTimeMillis();
+					int maxms = (int) (1000 * 3600 / fpm);
 					
 					scene.update();
-					ZBuffer zbuf2 = Renderer.render(width, height, scene);
+					ZBuffer zbuf2;
+					try {
+						zbuf2 = Renderer.render(width, height, scene);
+					} catch (InterruptedException e1) {
+						System.out.println("Renderer: " + e1);
+						return;
+					}
 					
 					synchronized (zbuf_lock) {
 						zbuf = zbuf2;
@@ -69,9 +75,8 @@ public class SimpleGLTest extends JFrame {
 					
 					long t = System.currentTimeMillis() - startms;
 					if(t > maxms) {
-						fps /= 2;
-						maxms = (int) (1000 / fps);
-						System.out.println("Can't keep up! Reducing frame rate to " + fps + "fps.");
+						fpm /= 2;
+						System.out.println("Can't keep up! Reducing frame rate to " + fpm + " fpm.");
 						continue;
 					}
 					try {

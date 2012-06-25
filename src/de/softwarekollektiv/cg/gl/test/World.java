@@ -21,7 +21,7 @@ public class World implements GraphicObject {
 		f = new ArrayList<Face>((int) (8 * Math.pow(2.0, RECURSION_DEPTH)));
 		
 		// A room of 20mx20m, no roof, one wall missing.
-		Texture tw = new SimpleColorTexture(new Vector3f(0.2, 0.2, 0.2));
+		Texture tw = new SimpleColorTexture(new Vector3f(0.3, 0.3, 0.3));
 		Texture tf = new SimpleColorTexture(new Vector3f(0.0, 0.5, 0.4));
 		Material m = SimpleMaterial.STONE;
 			
@@ -57,8 +57,9 @@ public class World implements GraphicObject {
 		Vector3f w2f10 = new Vector3f(20.0, 0.0, 20.0);
 		Vector3f w2f11 = new Vector3f(0.0, 0.0, 20.0);
 		Vector3f w2f12 = new Vector3f(0.0, 0.0, 0.0);
-		f.add(new SimpleFace(w2f00, w2f01, w2f02, m, tw));
-		f.add(new SimpleFace(w2f10, w2f11, w2f12, m, tw));	
+		Texture tw2 = new SimpleColorTexture(new Vector3f(0.75, 0.75, 0.75));
+		f.add(new SimpleFace(w2f00, w2f01, w2f02, m, tw2));
+		f.add(new SimpleFace(w2f10, w2f11, w2f12, m, tw2));	
 		
 		// Right wall.
 		Vector3f w3f00 = new Vector3f(20.0, 0.0, 0.0);
@@ -68,8 +69,9 @@ public class World implements GraphicObject {
 		Vector3f w3f11 = new Vector3f(20.0, 0.0, 20.0);
 		Vector3f w3f12 = new Vector3f(20.0, 0.0, 0.0);
 		if(wall_light) {
-			f.add(new SimpleFace(w3f00, w3f01, w3f02, m, tw, Vector3f.ONE));
-			f.add(new SimpleFace(w3f10, w3f11, w3f12, m, tw, Vector3f.ONE));
+			Vector3f dimPurpleLight = new Vector3f(0.65, 0.55, 0.0);
+			f.add(new SimpleFace(w3f00, w3f01, w3f02, m, tw, dimPurpleLight));
+			f.add(new SimpleFace(w3f10, w3f11, w3f12, m, tw, dimPurpleLight));
 		} else {
 			f.add(new SimpleFace(w3f00, w3f01, w3f02, m, tw));
 			f.add(new SimpleFace(w3f10, w3f11, w3f12, m, tw));	
