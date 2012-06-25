@@ -21,8 +21,9 @@ public class SimpleGLTest extends JFrame {
 
 	private final ScenarioUno scene;
 	private final JPanel canvas;
-	private final Object lock = new Object();
+	
 	private ZBuffer zbuf;
+	private final Object zbuf_lock = new Object();
 
 	SimpleGLTest() throws IOException {
 		final int width = 800;
@@ -31,20 +32,20 @@ public class SimpleGLTest extends JFrame {
 		System.out.println("Rendering...");
 		scene = new ScenarioUno();
 		zbuf = Renderer.render(width, height, scene);
-
+		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(width, height);
 		canvas = new JPanel() {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				synchronized (lock) {
+				synchronized (zbuf_lock) {
 					zbuf.paintOnCanvas(g);
 					System.out.println("Canvas updated.");
 				}
 			}
 		};
-		canvas.setSize(width, height);
+		canvas.setSize(width, height + 20);
 		this.add(canvas);
 		this.setVisible(true);
 
@@ -60,7 +61,7 @@ public class SimpleGLTest extends JFrame {
 					long startms = System.currentTimeMillis();
 					scene.update();
 					ZBuffer zbuf2 = Renderer.render(width, height, scene);
-					synchronized (lock) {
+					synchronized (zbuf_lock) {
 						zbuf = zbuf2;
 						canvas.repaint();
 					}

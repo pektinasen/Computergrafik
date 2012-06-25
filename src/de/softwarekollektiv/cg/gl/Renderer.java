@@ -128,8 +128,10 @@ public class Renderer {
 					double r = pq.length();
 					double vf = Math.abs(cosalpha) * Math.abs(cosbeta) * Ajs
 							/ (Math.PI * r * r);
-					if (vf < 0 || vf > 1)
+					if (vf < 0 || vf > 1) {
+						System.out.println("oo");
 						vf = 0;
+					}
 					view_factors[i][j] = vf;
 
 					// Visibilitity: Beware, this is O(n^3).
@@ -163,9 +165,9 @@ public class Renderer {
 
 				// Gathering approach.
 				double[] B = new double[patches.size()];
-				for (int p = 0; p < patches.size(); p++)
+				for (int p = 0; p < patches.size(); p++) 
 					B[p] = patches.get(p).face.getLight().get(col);
-
+				
 				for (int iteration = 0; iteration < scene.getRadiosityIterations(); iteration++) {
 					double[] Bn = new double[patches.size()];
 					for (int p = 0; p < patches.size(); p++) {
@@ -216,7 +218,7 @@ public class Renderer {
 		// #########################
 
 		// z-Buffer for view obstruction detection.
-		ZBuffer zbuf = new ZBuffer(width, height, scene.getBackgroundColor());
+		ZBuffer zbuf = new ZBuffer(width, height, scene.getBackgroundColor(), scene.getLightness());
 
 		// Matrix: World coordinates -> NDC.
 		final QuadMatrixf ndcMatrix = scene.getCamera().getNDCMatrix();
@@ -288,7 +290,7 @@ public class Renderer {
 	}
 
 	private static void rasterPatch(Patch p, ZBuffer zbuf) {
-
+	
 		// Prepare for barycentric coordinates.
 		QuadMatrixf Mb;
 		{
@@ -412,12 +414,7 @@ public class Renderer {
 						* (lambda1 * p.intensities[0].getZ() + lambda2
 								* p.intensities[1].getZ() + lambda3
 								* p.intensities[2].getZ());
-
-				// Cut off colors.
-				r = (r > 1.0) ? 1.0 : ((r < 0.0) ? 0.0 : r);
-				g = (g > 1.0) ? 1.0 : ((g < 0.0) ? 0.0 : g);
-				b = (b > 1.0) ? 1.0 : ((b < 0.0) ? 0.0 : b);
-				Vector3f color = new Vector3f(r, g, b);
+				Vector3f color = new Vector3f(r, g, b);			
 
 				// Draw into zBuffer.
 				zbuf.setPixel(xi, yi, pz, color);

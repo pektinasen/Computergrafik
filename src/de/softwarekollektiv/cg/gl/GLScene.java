@@ -9,6 +9,7 @@ import de.softwarekollektiv.cg.gl.math.Vector3f;
 public class GLScene {
 	private Camera cam;
 	private Vector3f ambient_light;
+	private double lightness;
 	private Vector3f phong_constants;
 	private double max_face_size;
 	private Vector3f bgcol;
@@ -18,17 +19,15 @@ public class GLScene {
 	private final List<GraphicObject> objs = new ArrayList<GraphicObject>();
 	private final List<QuadMatrixf> transm = new ArrayList<QuadMatrixf>();
 	private final List<Light> lights = new ArrayList<Light>();
-
 	
 	public GLScene() {
 		// Set stupid phong constants to sane values.
 		phong_constants = new Vector3f(0.01, 0.001, 0.00001);
 		
-		// Default to BLACK background.
+		// Defaults.
 		bgcol = Vector3f.ZERO;
-		
-		// Default radiosity iterations.
-		radiosity_iterations = 7;
+		radiosity_iterations = 5;
+		lightness = 3.0;
 	}
 	
 	// #######################
@@ -65,6 +64,10 @@ public class GLScene {
 	
 	public void setAmbientLight(double r, double g, double b) {
 		ambient_light = new Vector3f(r, g, b);
+	}
+	
+	public void setLightness(double l) {
+		lightness = l;
 	}
 	
 	public void setBackgroundColor(Vector3f color) {
@@ -119,6 +122,10 @@ public class GLScene {
 		assert(ambient_light != null);
 		
 		return ambient_light;
+	}
+	
+	final double getLightness() {
+		return lightness;
 	}
 	
 	final Vector3f getPhongConstants() {

@@ -20,7 +20,7 @@ class ScenarioUno extends GLScene {
 		double radalpha = Math.toRadians(alpha);
 		QuadMatrixf cubeM = new QuadMatrixf(new double[][] { // Translate/Scale.
 				{
-					3, 0, 0, -3
+					3, 0, 0, -5
 				},
 				{
 					0, 3, 0, 0
