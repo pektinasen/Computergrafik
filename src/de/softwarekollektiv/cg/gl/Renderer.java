@@ -90,14 +90,13 @@ public class Renderer {
 				}
 
 				for (Patch patch : patches) {
-					Vector3f[] vertices = new Vector3f[3];
-					Vector3f[] intensities = new Vector3f[3];
-
+					
+					// Calculate patch light levels and transform to NDC.
 					for (int i = 0; i < 3; i++) {
 						Vector3f vertex = patch.vertices[i];
 
 						// Calculate light intensity in world coordinates.
-						intensities[i] = PhongLightning.getIntensity(scene, f,
+						patch.intensities[i] = PhongLightning.getIntensity(scene, f,
 								N, vertex);
 
 						// Transform vertex to NDC.
@@ -108,14 +107,13 @@ public class Renderer {
 						Vector3f vndcCartesian = vndc.normalizeHomogeneous();
 
 						// View port.
-						vertices[i] = new Vector3f(
+						patch.vertices[i] = new Vector3f(
 								((vndcCartesian.getX() + 1) * (width / 2)),
 								((vndcCartesian.getY() + 1) * (height / 2)),
 								vndcCartesian.getZ());
 					}
 
-					rasterTriangle(vertices, intensities, m, t, patch.inverse,
-							zbuf);
+					rasterPatch(patch, m, t, zbuf);
 
 				} // Patch loop.
 			} // Faces loop.
@@ -136,14 +134,16 @@ public class Renderer {
 		}
 	}
 
-	private static class Patch {
+	private final static class Patch {
 		Patch(Vector3f[] vertices, QuadMatrixf inverse) {
 			this.vertices = vertices;
+			this.intensities = new Vector3f[3];
 			this.inverse = inverse;
 		}
 
-		Vector3f[] vertices;
-		QuadMatrixf inverse;
+		final Vector3f[] vertices;
+		final Vector3f[] intensities;
+		final QuadMatrixf inverse;
 	}
 
 	private static double triangle_size(Vector3f[] triangle) {
@@ -151,16 +151,14 @@ public class Renderer {
 				.vectorProduct(triangle[2].subtract(triangle[0])).length() / 2;
 	}
 
-	private static void rasterTriangle(Vector3f[] vertices,
-			Vector3f[] intensities, Material m, Texture t,
-			QuadMatrixf patch_inverse, ZBuffer zbuf) {
+	private static void rasterPatch(Patch p, Material m, Texture t, ZBuffer zbuf) {
 
 		// Prepare for barycentric coordinates.
 		QuadMatrixf Mb;
 		{
-			Vector3f A = vertices[0];
-			Vector3f B = vertices[1];
-			Vector3f C = vertices[2];
+			Vector3f A = p.vertices[0];
+			Vector3f B = p.vertices[1];
+			Vector3f C = p.vertices[2];
 
 			double fac = 1 / (A.getX() * (B.getY() - C.getY()) + B.getX()
 					* (C.getY() - A.getY()) + C.getX() * (A.getY() - B.getY()));
@@ -175,7 +173,7 @@ public class Renderer {
 		}
 
 		// Sort.
-		Vector3f[] sorted = Arrays.copyOf(vertices, 3);
+		Vector3f[] sorted = Arrays.copyOf(p.vertices, 3);
 		Arrays.sort(sorted, new Comparator<Vector3f>() {
 			public int compare(Vector3f arg0, Vector3f arg1) {
 				return (arg0.getY() < arg1.getY() ? -1 : ((arg0.getY() > arg1
@@ -205,8 +203,7 @@ public class Renderer {
 
 		while (yi <= sorted[1].getY()) {
 
-			rasterLine(xl, xr, yi, vertices, intensities, Mb, m, t,
-					patch_inverse, zbuf);
+			rasterLine(xl, xr, yi, Mb, p, m, t, zbuf);
 
 			yi++;
 			xl += dxl;
@@ -228,8 +225,7 @@ public class Renderer {
 
 		while (yi <= sorted[2].getY()) {
 
-			rasterLine(xl, xr, yi, vertices, intensities, Mb, m, t,
-					patch_inverse, zbuf);
+			rasterLine(xl, xr, yi, Mb, p, m, t, zbuf);
 
 			yi++;
 			xl += dxl;
@@ -237,14 +233,8 @@ public class Renderer {
 		}
 	}
 
-	// Intermediate data format.
-	class LightedFace {
-
-	}
-
-	private static void rasterLine(double xl, double xr, int yi,
-			Vector3f[] vertices, Vector3f[] intensities, QuadMatrixf Mb,
-			Material m, Texture t, QuadMatrixf patch_inverse, ZBuffer zbuf) {
+	private static void rasterLine(double xl, double xr, int yi, QuadMatrixf Mb, 
+			Patch p, Material m, Texture t, ZBuffer zbuf) {
 		int xi = (int) Math.ceil(xl);
 		while (xi <= xr) {
 
@@ -258,12 +248,13 @@ public class Renderer {
 			// Only draw points in triangle.
 			if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0) {
 
-				// Interpolate z.
-				double pz = lambda1 * vertices[0].getZ() + lambda2
-						* vertices[1].getZ() + lambda3 * vertices[2].getZ();
+				// Interpolate z with barycentric coordinates relative
+				// to patch vertices.
+				double pz = lambda1 * p.vertices[0].getZ() + lambda2
+						* p.vertices[1].getZ() + lambda3 * p.vertices[2].getZ();
 
-				// Barycentric coordinates: Invert patching.
-				Vector3f Lr = patch_inverse.mult(L);
+				// Barycentric coordinates relative to face vertices.
+				Vector3f Lr = p.inverse.mult(L);
 				double real_lambda1 = Lr.getX();
 				double real_lambda2 = Lr.getY();
 				double real_lambda3 = Lr.getZ();
@@ -274,17 +265,17 @@ public class Renderer {
 
 				// Interpolate intensity.
 				double r = col.getX()
-						* (lambda1 * intensities[0].getX() + lambda2
-								* intensities[1].getX() + lambda3
-								* intensities[2].getX());
+						* (lambda1 * p.intensities[0].getX() + lambda2
+								* p.intensities[1].getX() + lambda3
+								* p.intensities[2].getX());
 				double g = col.getY()
-						* (lambda1 * intensities[0].getY() + lambda2
-								* intensities[1].getY() + lambda3
-								* intensities[2].getY());
+						* (lambda1 * p.intensities[0].getY() + lambda2
+								* p.intensities[1].getY() + lambda3
+								* p.intensities[2].getY());
 				double b = col.getZ()
-						* (lambda1 * intensities[0].getZ() + lambda2
-								* intensities[1].getZ() + lambda3
-								* intensities[2].getZ());
+						* (lambda1 * p.intensities[0].getZ() + lambda2
+								* p.intensities[1].getZ() + lambda3
+								* p.intensities[2].getZ());
 
 				// Cut off colors.
 				r = (r > 1.0) ? 1.0 : ((r < 0.0) ? 0.0 : r);
