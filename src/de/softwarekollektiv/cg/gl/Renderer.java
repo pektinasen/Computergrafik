@@ -127,29 +127,48 @@ public class Renderer {
 
 				}
 			}
+			
+			// Step 2: Precalculate visibility matrix.
+			// TODO		
 
-			// Step 2: Iteratively solve global illumination equation.
+			// Step 3: Iteratively solve global illumination equation.
 			// Bi = Ei + pi * SUMj(Fij * Bj) where
 			// - B{i,j} is the radiosity of patches i and j,
 			// - Ei is the light emission of patch i,
 			// - pi is the diffuse reflection coefficient of patch i,
 			// - Fij is the view factor between patch i and j
-			
-			// We use the shooting approach here, where the patch with the
-			// most remaining energy emits that energy. We continue to do this
-			// for #patches * something iterations.
-			// TODO allow configuration
-
 			double[][] Bs = new double[3][];
 			for (int col = 0; col < 3; col++) {
+				
+				// Gathering approach.
+				double[] B = new double[patches.size()];
+				for(int p = 0; p < patches.size(); p++)
+					B[p] = patches.get(p).face.getLight().get(col);
+				
+				for(int iteration = 0; iteration < 5; iteration++) {
+					double[] Bn = new double[patches.size()];
+					for(int p = 0; p < patches.size(); p++) {
+						Bn[p] = patches.get(p).face.getLight().get(col);
+						for(int p2 = 0; p2 < patches.size(); p2++) {
+							double pj = patches.get(p2).face.getMaterial()
+									.getDiffuseReflectionCoefficient().get(col); 
+							Bn[p] += pj * view_factors[p][p2] * B[p2];
+						}
+					}
+					B = Bn;
+				}
+							
+				/*
+				// We use the shooting approach here, where the patch with the
+				// most remaining energy emits that energy. We continue to do this
+				// for #patches * something iterations.
+				// TODO allow configuration
 				double[] B = new double[patches.size()];
 				double[] dB = new double[patches.size()];
-				
 				for (int p = 0; p < patches.size(); p++) {
 					B[p] = patches.get(p).face.getLight().get(col);
 					dB[p] = B[p];
 				}
-
 				for (int iteration = 0; iteration < patches.size() * 0.6; iteration++) {
 					int maxp = 0;
 					for (int p = 1; p < patches.size(); p++) {
@@ -165,12 +184,12 @@ public class Renderer {
 						B[p] += rad;
 					}
 					dB[maxp] = 0.0;
-				}
+				}*/
 				
 				Bs[col] = B;
 			}
 
-			// Step 3: Convert radiosity to intensities for rasterization.
+			// Step 4: Convert radiosity to intensities for rasterization.
 			for(int p = 0; p < patches.size(); p++) {
 				Vector3f intensity = new Vector3f(Bs[0][p], Bs[1][p], Bs[2][p]); 
 				patches.get(p).intensities[0] = intensity;
