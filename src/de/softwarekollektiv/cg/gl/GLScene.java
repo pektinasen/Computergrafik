@@ -13,6 +13,7 @@ public class GLScene {
 	private double max_face_size;
 	private Vector3f bgcol;
 	private boolean use_radiosity;
+	private int radiosity_iterations;
 	
 	private final List<GraphicObject> objs = new ArrayList<GraphicObject>();
 	private final List<QuadMatrixf> transm = new ArrayList<QuadMatrixf>();
@@ -25,6 +26,9 @@ public class GLScene {
 		
 		// Default to BLACK background.
 		bgcol = Vector3f.ZERO;
+		
+		// Default radiosity iterations.
+		radiosity_iterations = 7;
 	}
 	
 	// #######################
@@ -69,6 +73,10 @@ public class GLScene {
 	
 	public void setUseRadiosity(boolean active) {
 		use_radiosity = active;
+	}
+	
+	public void setRadiosityIterations(int iterations) {
+		radiosity_iterations = iterations;
 	}
 	
 	// #######################
@@ -127,5 +135,9 @@ public class GLScene {
 	
 	final boolean getUseRadiosity() {
 		return use_radiosity;
+	}
+
+	int getRadiosityIterations() {
+		return radiosity_iterations;
 	}
 }

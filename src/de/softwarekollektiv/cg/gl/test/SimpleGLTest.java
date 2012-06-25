@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import de.softwarekollektiv.cg.gl.Renderer;
+import de.softwarekollektiv.cg.gl.ZBuffer;
 
 /**
  * Assignment 7 using the new GL framework.
@@ -21,13 +22,16 @@ public class SimpleGLTest extends JFrame {
 	private final ScenarioUno scene;
 	private final JPanel canvas;
 	private final Object lock = new Object();
-	private double alpha = 35;
+	private ZBuffer zbuf;
 
 	SimpleGLTest() throws IOException {
-		scene = new ScenarioUno();
-
 		final int width = 800;
 		final int height = 600;
+		
+		System.out.println("Rendering...");
+		scene = new ScenarioUno();
+		zbuf = Renderer.render(width, height, scene);
+
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(width, height);
 		canvas = new JPanel() {
@@ -35,7 +39,8 @@ public class SimpleGLTest extends JFrame {
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				synchronized (lock) {
-					Renderer.render(g, width, height, scene);
+					zbuf.paintOnCanvas(g);
+					System.out.println("Canvas updated.");
 				}
 			}
 		};
@@ -43,19 +48,31 @@ public class SimpleGLTest extends JFrame {
 		this.add(canvas);
 		this.setVisible(true);
 
-		new Thread(new Runnable() {
 
+		new Thread(new Runnable() {
+			private double fps = 1.0 / 60;
+		    private int maxms = (int) (1000 / fps);
+			
 			@Override
 			public void run() {
-				while (true) {
-					alpha += 10;
-					alpha %= 360;
+				System.out.println("Animating... (at " + fps + "fps)");
+				while (true) {				
+					long startms = System.currentTimeMillis();
+					scene.update();
+					ZBuffer zbuf2 = Renderer.render(width, height, scene);
 					synchronized (lock) {
-						scene.update(alpha);
+						zbuf = zbuf2;
 						canvas.repaint();
 					}
+					long t = System.currentTimeMillis() - startms;
+					if(t > maxms) {
+						fps /= 2;
+						maxms = (int) (1000 / fps);
+						System.out.println("Can't keep up! Reducing frame rate to " + fps + "fps.");
+						continue;
+					}
 					try {
-						Thread.sleep(20000);
+						Thread.sleep(maxms - t);
 					} catch (InterruptedException e) {
 						return;
 					}

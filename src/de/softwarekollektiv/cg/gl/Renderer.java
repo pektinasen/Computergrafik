@@ -1,7 +1,5 @@
 package de.softwarekollektiv.cg.gl;
 
-import java.awt.Color;
-import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -14,8 +12,8 @@ import de.softwarekollektiv.cg.gl.math.Vector4f;
 
 public class Renderer {
 
-	public static void render(Graphics g, int width, int height, GLScene scene) {
-		assert (g != null && scene != null);
+	public static ZBuffer render(int width, int height, GLScene scene) {
+		assert (scene != null);
 
 		// #####################
 		// Building the world.
@@ -57,8 +55,9 @@ public class Renderer {
 								{ 0, 1, 0 } });
 
 				// Create patches in world coordinates.
-				Patch initial_patch = new Patch(face_vertices, QuadMatrixf.createIdentity(3), f, N);
-				
+				Patch initial_patch = new Patch(face_vertices,
+						QuadMatrixf.createIdentity(3), f, N);
+
 				List<Patch> t1 = new ArrayList<Patch>();
 				t1.add(initial_patch);
 				double cur_patch_size = initial_patch.size;
@@ -90,11 +89,18 @@ public class Renderer {
 		// #######################
 
 		if (scene.getUseRadiosity()) {
-
+			
+			// TODO remove
+			System.out.println("Enter radiosity!");
+			long now = System.currentTimeMillis();
+			
 			// Radiosity!
 
 			// Step 1: Calculate view factors between each 2 patches.
+			// +++
+			// Step 2: Precalculate visibility matrix.
 			double[][] view_factors = new double[patches.size()][patches.size()];
+			boolean[][] visibility = new boolean[patches.size()][patches.size()];
 			for (int i = 0; i < patches.size(); i++) {
 				Patch Ai = patches.get(i);
 				for (int j = 0; j < patches.size(); j++) {
@@ -120,16 +126,31 @@ public class Renderer {
 
 					// Use approximation formula.
 					double r = pq.length();
-					double vf = Math.abs(cosalpha) * Math.abs(cosbeta) * Ajs / (Math.PI * r * r);
+					double vf = Math.abs(cosalpha) * Math.abs(cosbeta) * Ajs
+							/ (Math.PI * r * r);
 					if (vf < 0 || vf > 1)
 						vf = 0;
 					view_factors[i][j] = vf;
 
+					// Visibilitity: Beware, this is O(n^3).
+					// Small optimization: Only calculate vis, if
+					// i is smaller than j.
+					if (i < j) {
+						boolean visible = true;
+						for (int k = 0; k < patches.size(); k++) {
+							if (k == i || k == j)
+								continue;
+
+							if (triangle_line_intersect(
+									patches.get(k).vertices, p, q)) {
+								visible = false;
+								break;
+							}
+						}
+						visibility[i][j] = visible;
+					}
 				}
 			}
-			
-			// Step 2: Precalculate visibility matrix.
-			// TODO		
 
 			// Step 3: Iteratively solve global illumination equation.
 			// Bi = Ei + pi * SUMj(Fij * Bj) where
@@ -139,63 +160,42 @@ public class Renderer {
 			// - Fij is the view factor between patch i and j
 			double[][] Bs = new double[3][];
 			for (int col = 0; col < 3; col++) {
-				
+
 				// Gathering approach.
 				double[] B = new double[patches.size()];
-				for(int p = 0; p < patches.size(); p++)
+				for (int p = 0; p < patches.size(); p++)
 					B[p] = patches.get(p).face.getLight().get(col);
-				
-				for(int iteration = 0; iteration < 5; iteration++) {
+
+				for (int iteration = 0; iteration < scene.getRadiosityIterations(); iteration++) {
 					double[] Bn = new double[patches.size()];
-					for(int p = 0; p < patches.size(); p++) {
+					for (int p = 0; p < patches.size(); p++) {
 						Bn[p] = patches.get(p).face.getLight().get(col);
-						for(int p2 = 0; p2 < patches.size(); p2++) {
+						for (int p2 = 0; p2 < patches.size(); p2++) {
 							double pj = patches.get(p2).face.getMaterial()
-									.getDiffuseReflectionCoefficient().get(col); 
-							Bn[p] += pj * view_factors[p][p2] * B[p2];
+									.getDiffuseReflectionCoefficient().get(col);
+
+							// Only transfer light if patches see each other.
+							if ((p < p2 && visibility[p][p2])
+									|| (p2 < p && visibility[p2][p2]))
+								Bn[p] += pj * view_factors[p][p2] * B[p2];
 						}
 					}
 					B = Bn;
 				}
-							
-				/*
-				// We use the shooting approach here, where the patch with the
-				// most remaining energy emits that energy. We continue to do this
-				// for #patches * something iterations.
-				// TODO allow configuration
-				double[] B = new double[patches.size()];
-				double[] dB = new double[patches.size()];
-				for (int p = 0; p < patches.size(); p++) {
-					B[p] = patches.get(p).face.getLight().get(col);
-					dB[p] = B[p];
-				}
-				for (int iteration = 0; iteration < patches.size() * 0.6; iteration++) {
-					int maxp = 0;
-					for (int p = 1; p < patches.size(); p++) {
-						if (dB[p] * patches.get(p).size > dB[maxp] * patches.get(maxp).size)
-							maxp = p;
-					}
 
-					for (int p = 0; p < patches.size(); p++) {
-						double pj = patches.get(p).face.getMaterial()
-								.getDiffuseReflectionCoefficient().get(col);
-						double rad = dB[maxp] * pj * view_factors[p][maxp];
-						dB[p] += rad;
-						B[p] += rad;
-					}
-					dB[maxp] = 0.0;
-				}*/
-				
 				Bs[col] = B;
 			}
 
 			// Step 4: Convert radiosity to intensities for rasterization.
-			for(int p = 0; p < patches.size(); p++) {
-				Vector3f intensity = new Vector3f(Bs[0][p], Bs[1][p], Bs[2][p]); 
+			for (int p = 0; p < patches.size(); p++) {
+				Vector3f intensity = new Vector3f(Bs[0][p], Bs[1][p], Bs[2][p]);
 				patches.get(p).intensities[0] = intensity;
 				patches.get(p).intensities[1] = intensity;
 				patches.get(p).intensities[2] = intensity;
 			}
+			
+			// TODO remove
+			System.out.println("Leaving radiosity after " + (System.currentTimeMillis() - now) +  "ms !");
 
 		} else {
 
@@ -245,22 +245,13 @@ public class Renderer {
 		} // End of Patch loop.
 
 		// ##########################
-		// Antialiasing & drawing.
+		// Antialiasing.
 		// ##########################
 
 		// Smooth edges.
 		zbuf = zbuf.smooth();
 
-		// Flip screen.
-		for (int x = 0; x < width; x++) {
-			for (int y = 0; y < height; y++) {
-				Vector3f pixel = zbuf.getPixel(x, y);
-				Color col = new Color((float) pixel.getX(),
-						(float) pixel.getY(), (float) pixel.getZ());
-				g.setColor(col);
-				g.drawRect(width - x, height - y, 1, 1);
-			}
-		}
+		return zbuf;
 	}
 
 	private final static class Patch {
@@ -279,7 +270,7 @@ public class Renderer {
 		final double size;
 		final QuadMatrixf inverse;
 
-		// NOTE: vertices & intensities are changed within the 
+		// NOTE: vertices & intensities are changed within the
 		// rendering pipeline. 'size' is only accurate in world
 		// coordinates (i.e., after initialization).
 		Vector3f[] vertices;
@@ -289,6 +280,11 @@ public class Renderer {
 	private static double triangle_size(Vector3f[] triangle) {
 		return triangle[1].subtract(triangle[0])
 				.vectorProduct(triangle[2].subtract(triangle[0])).length() / 2;
+	}
+
+	private static boolean triangle_line_intersect(Vector3f[] triangle,
+			Vector3f p, Vector3f q) {
+		return false;
 	}
 
 	private static void rasterPatch(Patch p, ZBuffer zbuf) {

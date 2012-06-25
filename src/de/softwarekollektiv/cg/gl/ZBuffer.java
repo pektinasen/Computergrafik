@@ -1,8 +1,11 @@
 package de.softwarekollektiv.cg.gl;
 
+import java.awt.Color;
+import java.awt.Graphics;
+
 import de.softwarekollektiv.cg.gl.math.Vector3f;
 
-class ZBuffer {
+public class ZBuffer {
 
 	private final Vector3f[][] pixel;
 	private final double[][] zindex;
@@ -59,10 +62,23 @@ class ZBuffer {
 		return new ZBuffer(width, height, newpixel, zindex);
 	}
 	
-	Vector3f getPixel(int x, int y) {
+	public Vector3f getPixel(int x, int y) {
 		if(x < 0 || y < 0 || x >= width || y >= height)
 			return Vector3f.ZERO;
 			
 		return pixel[x][y];
+	}
+	
+	public void paintOnCanvas(Graphics g) {
+		// Flip screen.
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				Vector3f pixel = getPixel(x, y);
+				Color col = new Color((float) pixel.getX(),
+						(float) pixel.getY(), (float) pixel.getZ());
+				g.setColor(col);
+				g.drawRect(width - x, height - y, 1, 1);
+			}
+		}
 	}
 }

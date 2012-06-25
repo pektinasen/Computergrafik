@@ -11,41 +11,44 @@ class ScenarioUno extends GLScene {
 	private final QuadMatrixf worldM;
 	private final GraphicObject cube;
 	
-	void update(double alpha) {	
-		synchronized(this) {
-			double radalpha = Math.toRadians(alpha);
-			QuadMatrixf cubeM = new QuadMatrixf(new double[][] { // Translate/Scale.
-					{
-						3, 0, 0, -3
-					},
-					{
-						0, 3, 0, 0
-					},
-					{
-						0, 0, 3, 4
-					},
-					{
-						0, 0, 0, 1
-					}	
-			}).mult(new QuadMatrixf(new double[][] { // Rotate before.
-					{
-						Math.cos(radalpha), -Math.sin(radalpha), 0, 0
-					},
-					{
-						Math.sin(radalpha), Math.cos(radalpha), 0, 0
-					},
-					{
-						0, 0, 1, 0
-					},
-					{
-						0, 0, 0, 1
-					}	
-			}));
-			
-			this.clearObjects();
-			this.addGraphicObject(world, worldM);
-			this.addGraphicObject(cube, cubeM);
-		}
+	private double alpha;
+	
+	void update() {	
+		alpha += 20;
+		alpha %= 360;
+		
+		double radalpha = Math.toRadians(alpha);
+		QuadMatrixf cubeM = new QuadMatrixf(new double[][] { // Translate/Scale.
+				{
+					3, 0, 0, -3
+				},
+				{
+					0, 3, 0, 0
+				},
+				{
+					0, 0, 3, 4
+				},
+				{
+					0, 0, 0, 1
+				}	
+		}).mult(new QuadMatrixf(new double[][] { // Rotate before.
+				{
+					Math.cos(radalpha), -Math.sin(radalpha), 0, 0
+				},
+				{
+					Math.sin(radalpha), Math.cos(radalpha), 0, 0
+				},
+				{
+					0, 0, 1, 0
+				},
+				{
+					0, 0, 0, 1
+				}	
+		}));
+		
+		this.clearObjects();
+		this.addGraphicObject(world, worldM);
+		this.addGraphicObject(cube, cubeM);
 	}
 	
 	ScenarioUno() {
@@ -77,13 +80,15 @@ class ScenarioUno extends GLScene {
 		Camera cam = new Camera(0, 30, 10, 0.0, -1.0, 0.0, 0, 0, 1, 1, 60, 1, 100);
 		
 		// Define the scene.
-		this.setMaxFaceSize(0.5);
+		this.setMaxFaceSize(1.0);
 		this.setUseRadiosity(true);
 		this.setAmbientLight(1.0, 1.0, 1.0);
 //		this.addLight(light1);
 //		this.addLight(light2);
 		this.setCamera(cam);
 		
-		update(35);
+		// Initial alpha.
+		alpha = 25;
+		update();
 	}
 }
