@@ -57,10 +57,11 @@ public class Renderer {
 								{ 0, 1, 0 } });
 
 				// Create patches in world coordinates.
+				Patch initial_patch = new Patch(face_vertices, QuadMatrixf.createIdentity(3), f, N);
+				
 				List<Patch> t1 = new ArrayList<Patch>();
-				t1.add(new Patch(face_vertices, QuadMatrixf.createIdentity(3),
-						f, N));
-				double cur_patch_size = triangle_size(face_vertices);
+				t1.add(initial_patch);
+				double cur_patch_size = initial_patch.size;
 				while (cur_patch_size > mfs) {
 					List<Patch> t2 = new ArrayList<Patch>();
 					while (!t1.isEmpty()) {
@@ -119,14 +120,15 @@ public class Renderer {
 
 					// Use approximation formula.
 					double r = pq.length();
-					double vf = cosalpha * cosbeta * Ajs / (Math.PI * r * r);
+					double vf = Math.abs(cosalpha) * Math.abs(cosbeta) * Ajs / (Math.PI * r * r);
 					if (vf < 0 || vf > 1)
 						vf = 0;
 					view_factors[i][j] = vf;
+
 				}
 			}
 
-			// Step 2: Iterativly solve global illumination equation.
+			// Step 2: Iteratively solve global illumination equation.
 			// Bi = Ei + pi * SUMj(Fij * Bj) where
 			// - B{i,j} is the radiosity of patches i and j,
 			// - Ei is the light emission of patch i,
@@ -135,7 +137,7 @@ public class Renderer {
 			
 			// We use the shooting approach here, where the patch with the
 			// most remaining energy emits that energy. We continue to do this
-			// for #patches * 3 iterations.
+			// for #patches * something iterations.
 			// TODO allow configuration
 
 			double[][] Bs = new double[3][];
@@ -148,10 +150,10 @@ public class Renderer {
 					dB[p] = B[p];
 				}
 
-				for (int iteration = 0; iteration < patches.size() * 5; iteration++) {
+				for (int iteration = 0; iteration < patches.size() * 0.6; iteration++) {
 					int maxp = 0;
 					for (int p = 1; p < patches.size(); p++) {
-						if (dB[p] > dB[maxp])
+						if (dB[p] * patches.get(p).size > dB[maxp] * patches.get(maxp).size)
 							maxp = p;
 					}
 
@@ -162,7 +164,7 @@ public class Renderer {
 						dB[p] += rad;
 						B[p] += rad;
 					}
-					B[maxp] = 0.0;
+					dB[maxp] = 0.0;
 				}
 				
 				Bs[col] = B;
@@ -248,17 +250,21 @@ public class Renderer {
 			this.face = face;
 			this.normal = normal;
 			this.vertices = vertices;
-			this.intensities = new Vector3f[3];
 			this.inverse = inverse;
+			this.size = triangle_size(vertices);
+			this.intensities = new Vector3f[3];
 		}
 
 		final Face face;
 		final Vector3f normal;
-
-		final Vector3f[] vertices;
+		final double size;
 		final QuadMatrixf inverse;
 
-		final Vector3f[] intensities;
+		// NOTE: vertices & intensities are changed within the 
+		// rendering pipeline. 'size' is only accurate in world
+		// coordinates (i.e., after initialization).
+		Vector3f[] vertices;
+		Vector3f[] intensities;
 	}
 
 	private static double triangle_size(Vector3f[] triangle) {
