@@ -29,9 +29,7 @@ public class SimpleGLTest extends JFrame {
 		final int width = 800;
 		final int height = 600;
 		
-		System.out.println("Rendering...");
 		scene = new ScenarioUno();
-		zbuf = Renderer.render(width, height, scene);
 		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(width, height);
@@ -40,15 +38,16 @@ public class SimpleGLTest extends JFrame {
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				synchronized (zbuf_lock) {
-					zbuf.paintOnCanvas(g);
-					System.out.println("Canvas updated.");
+					if(zbuf != null) {
+						zbuf.paintOnCanvas(g);
+						System.out.println("Canvas updated.");
+					}
 				}
 			}
 		};
 		canvas.setSize(width, height + 20);
 		this.add(canvas);
 		this.setVisible(true);
-
 
 		new Thread(new Runnable() {
 			private double fps = 1.0 / 60;
@@ -59,12 +58,15 @@ public class SimpleGLTest extends JFrame {
 				System.out.println("Animating... (at " + fps + "fps)");
 				while (true) {				
 					long startms = System.currentTimeMillis();
+					
 					scene.update();
 					ZBuffer zbuf2 = Renderer.render(width, height, scene);
+					
 					synchronized (zbuf_lock) {
 						zbuf = zbuf2;
 						canvas.repaint();
 					}
+					
 					long t = System.currentTimeMillis() - startms;
 					if(t > maxms) {
 						fps /= 2;
