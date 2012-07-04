@@ -12,7 +12,8 @@ import de.softwarekollektiv.cg.gl.math.Vector4f;
 
 public class Renderer {
 
-	public static ZBuffer render(int width, int height, GLScene scene) throws InterruptedException {
+	public static ZBuffer render(int width, int height, GLScene scene)
+			throws InterruptedException {
 		assert (scene != null);
 
 		// #####################
@@ -115,8 +116,8 @@ public class Renderer {
 
 					// Get triangle centroids.
 					Vector3f p = Ai.centroid;
-					Vector3f q = Aj.centroid; 
-							
+					Vector3f q = Aj.centroid;
+
 					// Calculate cosine alpha & beta.
 					Vector3f pq = q.subtract(p);
 					double cosalpha = Ai.normal.scalarProduct(pq) / pq.length();
@@ -146,7 +147,7 @@ public class Renderer {
 						visibility[i][j] = visible;
 					}
 				}
-			}		
+			}
 
 			// Step 3: Iteratively solve global illumination equation.
 			// Bi = Ei + pi * SUMj(Fij * Bj) where
@@ -167,15 +168,14 @@ public class Renderer {
 					double[] Bn = new double[patches.size()];
 					for (int p = 0; p < patches.size(); p++) {
 						Bn[p] = patches.get(p).face.getLight().get(color);
+						double drcpi = patches.get(p).face.getMaterial()
+								.getDiffuseReflectionCoefficient().get(color);
+						
 						for (int p2 = 0; p2 < patches.size(); p2++) {
-							double pj = patches.get(p2).face.getMaterial()
-									.getDiffuseReflectionCoefficient()
-									.get(color);
-
 							// Only transfer light if patches see each other.
 							if ((p < p2 && visibility[p][p2])
 									|| (p2 < p && visibility[p2][p]))
-								Bn[p] += pj * view_factors[p][p2] * B[p2];
+								Bn[p] += drcpi * view_factors[p][p2] * B[p2];
 						}
 					}
 					B = Bn;
@@ -262,7 +262,8 @@ public class Renderer {
 			this.vertices = vertices;
 			this.inverse = inverse;
 			this.size = triangle_size(vertices);
-			this.centroid = vertices[0].add(vertices[1]).add(vertices[2]).scale(1.0 / 3);
+			this.centroid = vertices[0].add(vertices[1]).add(vertices[2])
+					.scale(1.0 / 3);
 			this.intensities = new Vector3f[3];
 		}
 

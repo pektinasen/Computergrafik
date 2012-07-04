@@ -69,7 +69,7 @@ public class World implements GraphicObject {
 		Vector3f w3f11 = new Vector3f(20.0, 0.0, 20.0);
 		Vector3f w3f12 = new Vector3f(20.0, 0.0, 0.0);
 		if(wall_light) {
-			Vector3f dimPurpleLight = new Vector3f(0.65, 0.55, 0.0);
+			Vector3f dimPurpleLight = new Vector3f(0.65, 0, 0.55);
 			f.add(new SimpleFace(w3f00, w3f01, w3f02, m, tw, dimPurpleLight));
 			f.add(new SimpleFace(w3f10, w3f11, w3f12, m, tw, dimPurpleLight));
 		} else {

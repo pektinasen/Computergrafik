@@ -26,8 +26,8 @@ public class GLScene {
 		
 		// Defaults.
 		bgcol = Vector3f.ZERO;
-		radiosity_iterations = 5;
-		lightness = 0.75;
+		radiosity_iterations = 3;
+		lightness = 1.00;
 	}
 	
 	// #######################
